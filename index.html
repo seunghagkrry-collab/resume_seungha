@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>최승하의 그린스마트 캠퍼스 노트 🌱 | 상명대학교</title>
+  <meta name="description" content="상명대학교 그린스마트시티학과 최승하(202420778)의 아기자기한 선도대학 9/1 포트폴리오">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nanum+Round:wght@400;700;800&family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Remix Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Cute Floating Top Banner -->
+  <div class="top-announcement">
+    <div class="announcement-content">
+      <span>🌱 상명대학교 그린스마트시티학과 202420778 최승하의 공간에 오신 것을 환영합니다! ✨</span>
+    </div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="header-container">
+      <a href="#" class="logo">
+        <span class="logo-emoji">🌿</span>
+        <span class="logo-text"><strong>최승하</strong>의 캠퍼스 노트</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#intro">🌱 소개</a>
+        <a href="#id-card">🪪 학생증</a>
+        <a href="#major-story">🌳 전공이야기</a>
+        <a href="#project-story">🚀 선도대학 9/1</a>
+        <a href="#location">📍 캠퍼스 위치</a>
+        <a href="#contact">💌 연락처</a>
+      </nav>
+
+      <div class="header-btns">
+        <button class="btn-copy-top" onclick="copyPhone()">
+          <span>📞 번호 복사</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- Hero / Intro Section -->
+    <section class="hero-section" id="intro">
+      <div class="hero-sticker-badge">✨ 선도대학 9/1 프로젝트 참여 학생 ✨</div>
+      
+      <div class="hero-layout">
+        <!-- Cute Left Profile Card -->
+        <div class="hero-profile-card">
+          <div class="tape-sticker">📌 MY PROFILE</div>
+          
+          <div class="avatar-circle">
+            <span class="avatar-emoji">🧑‍🎓</span>
+            <span class="avatar-sub-badge">🍀 상명대</span>
+          </div>
+
+          <h2 class="profile-name">최 승 하</h2>
+          <p class="profile-dept">상명대학교 그린스마트시티학과</p>
+          <div class="profile-id-tag">학번 : 202420778</div>
+
+          <div class="profile-mini-tags">
+            <span class="tag-pill">🌱 친환경 도시</span>
+            <span class="tag-pill">🏙️ 스마트 시티</span>
+            <span class="tag-pill">💚 성실한 배움</span>
+          </div>
+
+          <div class="hero-quick-btns">
+            <a href="tel:010-4127-2581" class="btn-cute-action primary">
+              <i class="ri-phone-fill"></i> 전화 걸기
+            </a>
+            <button onclick="copyPhone()" class="btn-cute-action secondary">
+              <i class="ri-file-copy-line"></i> 연락처 복사
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Welcome Story -->
+        <div class="hero-story-card">
+          <div class="story-speech-bubble">
+            <span class="bubble-icon">💬</span>
+            <span class="bubble-title"><strong>"나는 상명대 학생이다!"</strong></span>
+          </div>
+
+          <h1 class="hero-main-title">
+            자연과 스마트 기술을 함께 배우며<br>
+            <span class="highlight-green">미래 도시를 꿈꾸는 최승하</span>입니다! 🌱
+          </h1>
+
+          <div class="story-explanation">
+            <p class="story-p">
+              안녕하세요! <strong>상명대학교 그린스마트시티학과</strong>에서 공부하고 있는 <strong>202420778 최승하</strong>입니다.
+            </p>
+            <p class="story-p">
+              우리 학과는 자연환경을 지키는 <em>'그린(Green)'</em>과 편리한 미래 기술인 <em>'스마트시티(Smart City)'</em>가 
+              함께 어우러진 살기 좋은 도시를 연구하는 곳이에요.
+            </p>
+            <p class="story-p">
+              <strong>선도대학 9/1</strong> 프로그램을 통해 지속 가능한 공간과 생태계를 가꾸는 
+              멋진 인재가 되기 위해 매일 즐겁게 탐구하고 있답니다! 🌿
+            </p>
+          </div>
+
+          <div class="info-chips-row">
+            <div class="info-chip">
+              <i class="ri-map-pin-2-fill icon-green"></i> 천안시 동남구 상명대길31
+            </div>
+            <div class="info-chip">
+              <i class="ri-calendar-check-fill icon-orange"></i> 2026.09 선도대학 등록
+            </div>
+            <div class="info-chip">
+              <i class="ri-smartphone-fill icon-blue"></i> 010-4127-2581
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Student ID Card Section -->
+    <section class="section-wrap" id="id-card">
+      <div class="section-heading-box">
+        <span class="sub-emoji">🪪</span>
+        <h2 class="section-title">최승하의 상명대학교 학생증</h2>
+        <p class="section-desc">제 폴더에 담겨있는 소중한 정보들을 알기 쉽게 정리해 보았어요.</p>
+      </div>
+
+      <div class="id-card-layout">
+        <!-- Cute University Student ID Card -->
+        <div class="student-id-frame">
+          <div class="id-top-bar">
+            <div class="id-univ-brand">
+              <span class="univ-logo-icon">🏛️</span>
+              <div>
+                <strong>상명대학교</strong>
+                <span>SANGMYUNG UNIVERSITY</span>
+              </div>
+            </div>
+            <span class="id-verified-chip">✓ 재학생 인증</span>
+          </div>
+
+          <div class="id-body">
+            <div class="id-photo-box">
+              <div class="id-photo-inner">
+                <span class="photo-emoji">👤</span>
+                <span class="photo-caption">최승하</span>
+              </div>
+            </div>
+
+            <div class="id-details-list">
+              <div class="id-field">
+                <span class="f-label">성 명</span>
+                <span class="f-value name-val">최승하</span>
+              </div>
+              <div class="id-field">
+                <span class="f-label">소 속</span>
+                <span class="f-value">공과대학 그린스마트시티학과</span>
+              </div>
+              <div class="id-field">
+                <span class="f-label">학 번</span>
+                <span class="f-value font-mono">202420778</span>
+              </div>
+              <div class="id-field">
+                <span class="f-label">연락처</span>
+                <span class="f-value font-mono">010-4127-2581</span>
+              </div>
+              <div class="id-field">
+                <span class="f-label">캠퍼스</span>
+                <span class="f-value">천안캠퍼스 (상명대길31)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="id-barcode-footer">
+            <div class="fake-barcode">||| | |||| | ||| || |||| | ||| |||| | ||</div>
+            <span class="barcode-num">202420778 · SANGMYUNG · GREEN SMART CITY</span>
+          </div>
+        </div>
+
+        <!-- Explanatory Note Sticky -->
+        <div class="sticky-note-card">
+          <div class="sticky-pin">📌</div>
+          <h3 class="sticky-title">💡 "나는 상명대 학생이다"에 담긴 이야기</h3>
+          <p class="sticky-desc">
+            제 개인정보 파일에 적어둔 <strong>"나는 상명대 학생이다"</strong>라는 한 줄은, 
+            단순한 신분을 넘어 상명대학교에서 공부하는 것에 대한 <strong>자부심과 애정</strong>을 담고 있어요!
+          </p>
+          <div class="sticky-bullet-list">
+            <div class="s-bullet">
+              <span class="bullet-dot">🌿</span>
+              <span><strong>그린스마트시티학과</strong>의 일원으로서 깨끗하고 푸른 환경을 만드는 일에 기여하고 싶어요.</span>
+            </div>
+            <div class="s-bullet">
+              <span class="bullet-dot">📚</span>
+              <span><strong>학번 202420778</strong>을 달고 캠퍼스에서 배운 지식을 사회에 선한 영향력으로 전하고 싶습니다.</span>
+            </div>
+            <div class="s-bullet">
+              <span class="bullet-dot">🤝</span>
+              <span>선도대학 프로그램을 통해 동기들과 교수님, 연구원분들과 활발히 교류하고 있어요.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Major Story Section (부연설명 가득!) -->
+    <section class="section-wrap" id="major-story">
+      <div class="section-heading-box">
+        <span class="sub-emoji">🌳</span>
+        <h2 class="section-title">그린스마트시티학과에서는 무엇을 배울까요?</h2>
+        <p class="section-desc">생소할 수 있는 우리 학과의 매력적인 전공 분야를 친절하게 소개해드려요!</p>
+      </div>
+
+      <div class="major-cards-grid">
+        <!-- Card 1 -->
+        <div class="major-detail-card card-green">
+          <div class="card-deco-emoji">🍃</div>
+          <div class="card-tag">Green Ecosystem</div>
+          <h3>1. 친환경 생태 & 그린 인프라</h3>
+          <p class="card-intro-p">
+            도시 속에서도 자연이 숨 쉴 수 있도록 <strong>도심 숲, 생태 하천, 옥상 정원</strong>과 같은 녹색 인프라를 설계해요.
+          </p>
+          <div class="card-detail-box">
+            <strong>🔍 무엇을 해결하나요?</strong>
+            <ul>
+              <li>도심이 뜨거워지는 '열섬 현상'을 시원하게 식혀줘요.</li>
+              <li>비가 많이 와도 자연스럽게 물이 흡수되는 빗물 정원을 연구해요.</li>
+              <li>도시민들에게 쾌적한 휴식 공간을 선물해요.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="major-detail-card card-blue">
+          <div class="card-deco-emoji">🏙️</div>
+          <div class="card-tag">Smart Technology</div>
+          <h3>2. 스마트 도시 & 모빌리티 계획</h3>
+          <p class="card-intro-p">
+            IoT 센서, 빅데이터, 스마트 교통 시스템을 활용해 <strong>더 안전하고 편리한 미래 도시</strong>를 계획해요.
+          </p>
+          <div class="card-detail-box">
+            <strong>🔍 무엇을 해결하나요?</strong>
+            <ul>
+              <li>교통 체증을 줄이고 안전하게 걸을 수 있는 보행 환경을 만들어요.</li>
+              <li>친환경 전기 셔틀 및 스마트 환승 스테이션을 기획해요.</li>
+              <li>도시의 에너지 낭비를 줄이는 지능형 관리망을 구축해요.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="major-detail-card card-orange">
+          <div class="card-deco-emoji">🗺️</div>
+          <div class="card-tag">Spatial Data & GIS</div>
+          <h3>3. 공간 정보 & 도시 환경 분석</h3>
+          <p class="card-intro-p">
+            지도와 컴퓨터 시뮬레이션(GIS)을 활용해 <strong>도시의 지형과 환경 변화를 데이터로 분석</strong>해요.
+          </p>
+          <div class="card-detail-box">
+            <strong>🔍 무엇을 해결하나요?</strong>
+            <ul>
+              <li>공기가 잘 통하는 바람길 지도를 만들어요.</li>
+              <li>어느 곳에 나무를 심어야 효과가 가장 좋을지 데이터로 찾아요.</li>
+              <li>3D 디지털 지도로 미래 도시를 미리 시뮬레이션해봐요.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leading University 9/1 Project Section -->
+    <section class="section-wrap" id="project-story">
+      <div class="section-heading-box">
+        <span class="sub-emoji">🚀</span>
+        <h2 class="section-title">선도대학 9/1 이야기</h2>
+        <p class="section-desc">9월 1일 자로 기록된 선도대학 프로젝트에 대한 상세 부연설명입니다.</p>
+      </div>
+
+      <div class="project-board-card">
+        <div class="board-header">
+          <div class="board-badge">✨ 선도대학(Leading University) 트랙</div>
+          <h3>상명대학교 그린스마트 선도대학 프로젝트 (9/1)</h3>
+          <p class="board-sub">미래 사회가 필요로 하는 융합형 스마트 그린 인재 양성 프로젝트</p>
+        </div>
+
+        <div class="board-grid">
+          <div class="board-item">
+            <span class="b-icon">📅</span>
+            <div class="b-text">
+              <span class="b-label">프로젝트 기준일</span>
+              <span class="b-val">선도대학 9/1</span>
+              <span class="b-subtext">새 학기 시작과 함께 도약하는 성장 기록</span>
+            </div>
+          </div>
+
+          <div class="board-item">
+            <span class="b-icon">🧑‍💻</span>
+            <div class="b-text">
+              <span class="b-label">참여 학생</span>
+              <span class="b-val">최승하 (학번 202420778)</span>
+              <span class="b-subtext">상명대학교 그린스마트시티학과 재학생</span>
+            </div>
+          </div>
+
+          <div class="board-item">
+            <span class="b-icon">🏫</span>
+            <div class="b-text">
+              <span class="b-label">연구 거점 캠퍼스</span>
+              <span class="b-val">상명대학교 천안캠퍼스</span>
+              <span class="b-subtext">천안시 동남구 상명대길31 실습 공간</span>
+            </div>
+          </div>
+
+          <div class="board-item">
+            <span class="b-icon">🎯</span>
+            <div class="b-text">
+              <span class="b-label">주요 다짐과 목표</span>
+              <span class="b-val">지속 가능한 녹색 도시 모델 구축</span>
+              <span class="b-subtext">이론과 실무를 겸비한 도시 전문가로 성장</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="board-footer-quote">
+          <span class="quote-leaf">🌱</span>
+          <p>
+            <strong>"선도대학 9/1"</strong>은 단순한 날짜 메모를 넘어, 
+            상명대학교의 훌륭한 인프라 속에서 미래형 그린스마트시티 전문가로 한 걸음 더 나아가는 
+            최승하의 성실한 발걸음을 뜻합니다! ✨
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Campus & Location Section -->
+    <section class="section-wrap" id="location">
+      <div class="section-heading-box">
+        <span class="sub-emoji">📍</span>
+        <h2 class="section-title">우리 캠퍼스 & 찾아오는 길</h2>
+        <p class="section-desc">상명대학교 그린스마트시티학과가 위치한 아름다운 천안캠퍼스 안내예요.</p>
+      </div>
+
+      <div class="location-card-layout">
+        <div class="loc-map-box">
+          <div class="map-placeholder-graphic">
+            <span class="map-big-icon">🏫</span>
+            <h4>상명대학교 천안캠퍼스</h4>
+            <p class="map-addr-text">충청남도 천안시 동남구 상명대길 31</p>
+            <span class="map-dept-tag">그린스마트시티학과 실습 & 연구동</span>
+          </div>
+          
+          <div class="map-btns-row">
+            <button onclick="copyAddress()" class="btn-map-action">
+              <i class="ri-file-copy-line"></i> 주소 복사하기
+            </button>
+            <a href="https://map.naver.com/v5/search/%EC%83%81%EB%AA%85%EB%8C%80%ED%95%99%EA%B5%90%20%EC%B2%9C%EC%95%88%EC%BA%A0%ED%8D%BC%EC%8A%A4" target="_blank" rel="noopener noreferrer" class="btn-map-action map-link">
+              <i class="ri-map-pin-line"></i> 네이버 지도로 열기
+            </a>
+          </div>
+        </div>
+
+        <div class="loc-info-box">
+          <h3 class="loc-title">🏡 캠퍼스 주변 환경 이야기</h3>
+          <p class="loc-p">
+            상명대학교 천안캠퍼스(천안시 동남구 상명대길31)는 맑은 공기와 푸른 자연이 어우러진 
+            최적의 <strong>그린스마트 환경 학습 공간</strong>이에요.
+          </p>
+          <div class="loc-badges-grid">
+            <div class="loc-badge-item">
+              <span class="lb-emoji">🌲</span>
+              <div>
+                <strong>풍부한 녹지 환경</strong>
+                <span>생태 조경을 직접 관찰하고 실습하기 좋아요.</span>
+              </div>
+            </div>
+            <div class="loc-badge-item">
+              <span class="lb-emoji">🚌</span>
+              <div>
+                <strong>편리한 교통</strong>
+                <span>천안 도심 및 수도권과 연계된 접근성</span>
+              </div>
+            </div>
+            <div class="loc-badge-item">
+              <span class="lb-emoji">🔬</span>
+              <div>
+                <strong>스마트 연구 실습실</strong>
+                <span>도시 공간 데이터와 GIS를 분석하는 첨단 환경</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section-wrap" id="contact">
+      <div class="contact-banner-cute">
+        <div class="contact-sparkle">✨</div>
+        <h2 class="contact-title">최승하 학생과 이야기 나누기 💌</h2>
+        <p class="contact-sub">
+          상명대학교 그린스마트시티학과 학업, 선도대학 프로젝트, 기타 문의사항은 편하게 연락주세요!
+        </p>
+
+        <div class="contact-actions-box">
+          <div class="contact-chip-main">
+            <i class="ri-phone-fill"></i>
+            <span class="phone-num">010-4127-2581</span>
+          </div>
+
+          <div class="contact-btn-group">
+            <a href="tel:010-4127-2581" class="btn-action-cute green">
+              <i class="ri-phone-line"></i> 바로 전화걸기
+            </a>
+            <button onclick="copyPhone()" class="btn-action-cute white">
+              <i class="ri-file-copy-line"></i> 번호 복사
+            </button>
+            <button onclick="copyAddress()" class="btn-action-cute white">
+              <i class="ri-map-pin-line"></i> 캠퍼스 주소 복사
+            </button>
+          </div>
+        </div>
+
+        <div class="quick-memo-footer">
+          <i class="ri-information-line"></i> 부재 중일 경우 문자를 남겨주시면 확인 후 정성껏 회신드리겠습니다! 😊
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Cute & Warm Footer -->
+  <footer class="footer-cute">
+    <div class="footer-content">
+      <div class="footer-mascot">🌱</div>
+      <p class="footer-main-text">
+        <strong>상명대학교 그린스마트시티학과 최승하</strong>
+      </p>
+      <p class="footer-sub-text">
+        학번: 202420778 · 연락처: 010-4127-2581 · 소재지: 천안시 동남구 상명대길31
+      </p>
+      <div class="footer-divider"></div>
+      <p class="footer-copyright">
+        선도대학 9/1 프로젝트 포트폴리오 | © 2026 최승하. All Rights Reserved. 🍀
+      </p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="cute-toast">
+    <span class="toast-icon">✨</span>
+    <span id="toast-msg">복사되었습니다!</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
