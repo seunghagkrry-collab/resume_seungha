@@ -103,12 +103,13 @@ function serveFrontend(response, requestPath) {
       return;
     }
 
-    // 관리 화면은 공용 PC의 디스크 캐시에 남지 않도록 저장 자체를 막는다.
-    const isAdminPage = path.basename(filePath).toLowerCase().startsWith('admin.');
+    // no-cache는 검증자(ETag)가 없으면 브라우저가 옛 파일을 계속 쓰는 경우가 있다.
+    // 실제로 배포 후 예전 app.js가 남아 프로젝트 카드가 보이지 않는 일이 있었다.
+    // 파일이 작으므로 항상 새로 받게 한다.
     const extension = path.extname(filePath).toLowerCase();
     response.writeHead(200, {
       'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',
-      'Cache-Control': isAdminPage ? 'no-store' : 'no-cache',
+      'Cache-Control': 'no-store',
     });
     response.end(content);
   });
