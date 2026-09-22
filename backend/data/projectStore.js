@@ -109,7 +109,11 @@ async function create(input) {
   };
 
   const projects = await storage.readProjects();
-  await storage.writeProjects([...projects, project]);
+  try {
+    await storage.writeProjects([...projects, project]);
+  } catch (error) {
+    return { storageError: error.message };
+  }
   return { project };
 }
 
@@ -132,7 +136,11 @@ async function update(id, input) {
 
   const next = projects.slice();
   next[index] = project;
-  await storage.writeProjects(next);
+  try {
+    await storage.writeProjects(next);
+  } catch (error) {
+    return { storageError: error.message };
+  }
   return { project };
 }
 
@@ -143,7 +151,11 @@ async function remove(id) {
   const next = projects.filter((project) => project.id !== id);
   if (next.length === projects.length) return { notFound: true };
 
-  await storage.writeProjects(next);
+  try {
+    await storage.writeProjects(next);
+  } catch (error) {
+    return { storageError: error.message };
+  }
   return { removed: true };
 }
 

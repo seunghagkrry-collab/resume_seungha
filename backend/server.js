@@ -190,6 +190,10 @@ async function handleAdminProjects(request, response, requestUrl) {
       sendJson(response, 503, { error: ADMIN_UNAVAILABLE_MESSAGE });
       return;
     }
+    if (result.storageError) {
+      sendJson(response, 503, { error: result.storageError });
+      return;
+    }
     if (result.notFound) {
       sendJson(response, 404, { error: '프로젝트를 찾을 수 없어요.' });
       return;
@@ -270,7 +274,7 @@ function requestHandler(request, response) {
   }
 
   if (pathname === '/api/health') {
-    sendJson(response, 200, { status: 'ok' });
+    sendJson(response, 200, { status: 'ok', storage: storage.describe() });
     return;
   }
 

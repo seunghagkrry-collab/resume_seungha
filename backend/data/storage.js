@@ -1,8 +1,8 @@
 'use strict';
 
 // 프로젝트 목록을 어디에 두는지 결정하는 곳.
-// - 내 컴퓨터: backend/data/projects.json 파일
-// - Vercel: Vercel Blob (서버리스는 파일에 쓸 수 없다)
+// - 내 컴퓨터, Render 디스크: backend/data/projects.json 파일
+// - Vercel Blob: BLOB_READ_WRITE_TOKEN이 있을 때
 // 두 경우 모두 { projects: [...] } 모양을 그대로 주고받는다.
 
 const fs = require('node:fs');
@@ -12,13 +12,16 @@ const DATA_FILE = path.resolve(__dirname, 'projects.json');
 const TEMP_FILE = `${DATA_FILE}.tmp`;
 const BLOB_PATH = 'portfolio/projects.json';
 
+// 토큰이 비어 있거나 공백만 있으면 없는 것으로 본다.
 function blobToken() {
-  return process.env.BLOB_READ_WRITE_TOKEN || '';
+  return (process.env.BLOB_READ_WRITE_TOKEN || '').trim();
 }
 
 function usesBlob() {
-  return Boolean(blobToken());
+  return blobToken().length > 0;
 }
+
+let lastBlobError = '';
 
 /* ---------- 파일 저장소 ---------- */
 
@@ -41,7 +44,6 @@ function writeLocal(projects) {
 /* ---------- Vercel Blob 저장소 ---------- */
 
 // 같은 인스턴스가 방금 쓴 내용을 바로 읽도록 들고 있는다.
-// CDN이 잠깐 옛 내용을 줘도 화면이 되돌아가지 않는다.
 let cache = null;
 
 function loadBlobSdk() {
@@ -78,11 +80,22 @@ async function writeBlob(projects) {
 
 /* ---------- 공통 진입점 ---------- */
 
+// 저장소가 말썽이어도 공개 사이트는 비지 않아야 한다.
+// 읽기에 실패하면 저장소에 함께 올라간 파일을 대신 보여준다.
 async function readProjects() {
   if (!usesBlob()) return readLocal();
   if (cache) return cache;
-  cache = await readBlob();
-  return cache;
+
+  try {
+    cache = await readBlob();
+    lastBlobError = '';
+    return cache;
+  } catch (error) {
+    lastBlobError = error.message || String(error);
+    console.error('[저장소] Blob을 읽지 못했어요:', lastBlobError);
+    console.error('[저장소] 저장소에 올라간 projects.json으로 대신 보여줍니다.');
+    return readLocal();
+  }
 }
 
 async function writeProjects(projects) {
@@ -90,8 +103,25 @@ async function writeProjects(projects) {
     writeLocal(projects);
     return;
   }
-  await writeBlob(projects);
-  cache = projects;
+
+  // 쓰기는 조용히 넘어가면 안 된다. 실패를 그대로 알린다.
+  try {
+    await writeBlob(projects);
+    lastBlobError = '';
+    cache = projects;
+  } catch (error) {
+    lastBlobError = error.message || String(error);
+    console.error('[저장소] Blob에 쓰지 못했어요:', lastBlobError);
+    throw new Error('저장소에 기록하지 못했어요. BLOB_READ_WRITE_TOKEN을 확인해 주세요.');
+  }
 }
 
-module.exports = { readProjects, writeProjects, usesBlob };
+function describe() {
+  return {
+    mode: usesBlob() ? 'blob' : 'file',
+    healthy: !lastBlobError,
+    ...(lastBlobError ? { problem: lastBlobError } : {}),
+  };
+}
+
+module.exports = { readProjects, writeProjects, usesBlob, describe };
