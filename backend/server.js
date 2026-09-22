@@ -6,7 +6,8 @@ const path = require('node:path');
 const { getPortfolioData } = require('./data/portfolioData');
 const projectStore = require('./data/projectStore');
 const adminAuth = require('./auth/adminAuth');
-const { isReadOnly } = require('./runtime');
+const storage = require('./data/storage');
+const { isServerless, isWritable } = require('./runtime');
 
 const PORT = Number(process.env.PORT) || 3000;
 const FRONTEND_ROOT = path.resolve(__dirname, '..', 'frontend');
@@ -179,12 +180,12 @@ async function handleAdminProjects(request, response, requestUrl) {
   const id = segments[3] || '';
 
   if (request.method === 'GET' && !id) {
-    sendJson(response, 200, { projects: projectStore.listAll() });
+    sendJson(response, 200, { projects: await projectStore.listAll() });
     return;
   }
 
   if (request.method === 'DELETE' && id) {
-    const result = projectStore.remove(id);
+    const result = await projectStore.remove(id);
     if (result.readOnly) {
       sendJson(response, 503, { error: ADMIN_UNAVAILABLE_MESSAGE });
       return;
@@ -209,7 +210,7 @@ async function handleAdminProjects(request, response, requestUrl) {
     }
 
     const result =
-      request.method === 'POST' ? projectStore.create(body) : projectStore.update(id, body);
+      request.method === 'POST' ? await projectStore.create(body) : await projectStore.update(id, body);
 
     if (result.readOnly) {
       sendJson(response, 503, { error: ADMIN_UNAVAILABLE_MESSAGE });
@@ -274,7 +275,9 @@ function requestHandler(request, response) {
   }
 
   if (pathname === '/api/portfolio') {
-    sendJson(response, 200, getPortfolioData());
+    getPortfolioData()
+      .then((data) => sendJson(response, 200, data))
+      .catch(() => sendJson(response, 500, { error: '프로젝트를 불러오지 못했어요.' }));
     return;
   }
 
@@ -294,8 +297,8 @@ function requestHandler(request, response) {
 const credentialInfo = adminAuth.init();
 
 // 읽기 전용 환경에서는 저장이 사라지므로 관리 기능을 아예 닫고 이유를 알려준다.
-const ADMIN_AVAILABLE = !isReadOnly() && adminAuth.hasCredential();
-const ADMIN_UNAVAILABLE_MESSAGE = isReadOnly()
+const ADMIN_AVAILABLE = isWritable() && adminAuth.hasCredential();
+const ADMIN_UNAVAILABLE_MESSAGE = isServerless()
   ? '이 주소는 읽기 전용으로 배포돼 있어서 프로젝트를 저장할 수 없어요. 내 컴퓨터에서 실행한 관리자 페이지를 이용해 주세요.'
   : '관리자 비밀번호가 설정되지 않았어요.';
 
@@ -317,6 +320,18 @@ function startServer() {
       console.log('');
     } else if (credentialInfo.source === 'env') {
       console.log('관리자 비밀번호: 환경변수 ADMIN_PASSWORD 사용 중');
+    } else if (credentialInfo.source === 'unavailable') {
+      console.log('[경고] ADMIN_PASSWORD가 없어서 관리자 로그인을 닫았어요.');
+    }
+
+    if (storage.usesBlob()) {
+      console.log('저장소: Vercel Blob (재시작해도 내용이 유지돼요)');
+    } else {
+      console.log('저장소: backend/data/projects.json 파일');
+      if (process.env.RENDER) {
+        console.log('[경고] Render 무료 플랜은 디스크가 유지되지 않아요.');
+        console.log('       BLOB_READ_WRITE_TOKEN을 넣지 않으면 저장한 내용이 재시작 때 사라져요.');
+      }
     }
   });
 

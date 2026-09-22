@@ -1,12 +1,8 @@
 'use strict';
 
-const fs = require('node:fs');
-const path = require('node:path');
 const crypto = require('node:crypto');
-const { isReadOnly } = require('../runtime');
-
-const DATA_FILE = path.resolve(__dirname, 'projects.json');
-const TEMP_FILE = `${DATA_FILE}.tmp`;
+const storage = require('./storage');
+const { isWritable } = require('../runtime');
 
 const CATEGORIES = ['웹', '데이터', '디자인'];
 
@@ -18,24 +14,6 @@ const REQUIRED_TEXT_FIELDS = [
   ['date', '날짜를'],
   ['category', '분야를'],
 ];
-
-function readFileSafely() {
-  try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed.projects) ? parsed.projects : [];
-  } catch (error) {
-    if (error.code === 'ENOENT') return [];
-    throw error;
-  }
-}
-
-// 쓰기 도중 종료되어도 기존 파일이 깨지지 않도록 임시 파일에 먼저 쓴다.
-function writeFileSafely(projects) {
-  const payload = JSON.stringify({ projects }, null, 2);
-  fs.writeFileSync(TEMP_FILE, payload, 'utf8');
-  fs.renameSync(TEMP_FILE, DATA_FILE);
-}
 
 function trimText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -106,16 +84,18 @@ function validate(record) {
   return errors;
 }
 
-function listAll() {
-  return readFileSafely();
+async function listAll() {
+  return storage.readProjects();
 }
 
-function listPublished() {
-  return readFileSafely().filter((project) => project.status === 'published');
+async function listPublished() {
+  const projects = await storage.readProjects();
+  return projects.filter((project) => project.status === 'published');
 }
 
-function create(input) {
-  if (isReadOnly()) return { readOnly: true };
+async function create(input) {
+  if (!isWritable()) return { readOnly: true };
+
   const record = normalizeInput(input);
   const errors = validate(record);
   if (errors.length) return { errors };
@@ -128,15 +108,15 @@ function create(input) {
     updatedAt: now,
   };
 
-  const projects = readFileSafely();
-  projects.push(project);
-  writeFileSafely(projects);
+  const projects = await storage.readProjects();
+  await storage.writeProjects([...projects, project]);
   return { project };
 }
 
-function update(id, input) {
-  if (isReadOnly()) return { readOnly: true };
-  const projects = readFileSafely();
+async function update(id, input) {
+  if (!isWritable()) return { readOnly: true };
+
+  const projects = await storage.readProjects();
   const index = projects.findIndex((project) => project.id === id);
   if (index === -1) return { notFound: true };
 
@@ -149,17 +129,21 @@ function update(id, input) {
     ...record,
     updatedAt: new Date().toISOString(),
   };
-  projects[index] = project;
-  writeFileSafely(projects);
+
+  const next = projects.slice();
+  next[index] = project;
+  await storage.writeProjects(next);
   return { project };
 }
 
-function remove(id) {
-  if (isReadOnly()) return { readOnly: true };
-  const projects = readFileSafely();
+async function remove(id) {
+  if (!isWritable()) return { readOnly: true };
+
+  const projects = await storage.readProjects();
   const next = projects.filter((project) => project.id !== id);
   if (next.length === projects.length) return { notFound: true };
-  writeFileSafely(next);
+
+  await storage.writeProjects(next);
   return { removed: true };
 }
 

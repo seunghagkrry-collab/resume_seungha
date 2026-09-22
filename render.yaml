@@ -1,0 +1,23 @@
+# Render 배포 설정 (Blueprint)
+# Render 대시보드에서 New > Blueprint 를 고르고 이 저장소를 선택하면 그대로 만들어진다.
+#
+# 서비스 이름을 바꾸면 주소도 바뀐다. vercel.json이
+# https://resume-seungha-api.onrender.com 을 가리키고 있으므로 이름은 그대로 두는 편이 좋다.
+services:
+  - type: web
+    name: resume-seungha-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: node backend/server.js
+    healthCheckPath: /api/health
+    envVars:
+      # 관리자 비밀번호. 대시보드에서 직접 넣는다. 저장소에는 올라가지 않는다.
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Vercel Blob 저장소 토큰. 없으면 저장한 내용이 재시작 때 사라진다.
+      - key: BLOB_READ_WRITE_TOKEN
+        sync: false
+      - key: NODE_VERSION
+        value: "22"
