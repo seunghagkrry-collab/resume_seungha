@@ -26,6 +26,18 @@ function hashPassword(password, salt, params) {
     .toString('hex');
 }
 
+// 로그인 검증은 스레드풀에서 돌린다. 동기 버전은 이벤트 루프를 0.2초 넘게 막아
+// 로그인 시도가 몰리면 사이트 전체가 멎는다.
+function hashPasswordAsync(password, salt, params) {
+  const { N, r, p } = params || SCRYPT_PARAMS;
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(password, salt, KEY_LENGTH, { N, r, p, maxmem: SCRYPT_MAXMEM }, (error, key) => {
+      if (error) reject(error);
+      else resolve(key.toString('hex'));
+    });
+  });
+}
+
 function buildCredential(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   return {
@@ -100,7 +112,7 @@ function recordFailure(clientKey) {
   loginAttempts.set(clientKey, attempt);
 }
 
-function verifyPassword(password) {
+async function verifyPassword(password) {
   if (!credential || typeof password !== 'string' || !password) return false;
   // 저장할 때 쓴 파라미터로 다시 계산해야 예전 자격 증명도 열린다.
   const params = {
@@ -108,7 +120,7 @@ function verifyPassword(password) {
     r: credential.r || 8,
     p: credential.p || 1,
   };
-  const candidate = Buffer.from(hashPassword(password, credential.salt, params), 'hex');
+  const candidate = Buffer.from(await hashPasswordAsync(password, credential.salt, params), 'hex');
   const expected = Buffer.from(credential.hash, 'hex');
   if (candidate.length !== expected.length) return false;
   return crypto.timingSafeEqual(candidate, expected);
@@ -118,6 +130,10 @@ function pruneSessions() {
   const now = Date.now();
   sessions.forEach((session, token) => {
     if (session.expiresAt <= now) sessions.delete(token);
+  });
+  // 실패 기록도 같이 정리한다. 두지 않으면 IP마다 계속 쌓인다.
+  loginAttempts.forEach((attempt, key) => {
+    if (attempt.lockedUntil && attempt.lockedUntil <= now) loginAttempts.delete(key);
   });
 }
 
@@ -145,12 +161,12 @@ function destroySession(token) {
   if (token) sessions.delete(token);
 }
 
-function login(password, clientKey) {
+async function login(password, clientKey) {
   const lockedMs = isLockedOut(clientKey);
   if (lockedMs > 0) {
     return { locked: true, retryAfterSeconds: Math.ceil(lockedMs / 1000) };
   }
-  if (!verifyPassword(password)) {
+  if (!(await verifyPassword(password))) {
     recordFailure(clientKey);
     return { ok: false };
   }

@@ -72,6 +72,13 @@ function sessionToken(request) {
   return parseCookies(request.headers.cookie)[SESSION_COOKIE] || '';
 }
 
+// HTTPS로 배포되면 쿠키에 Secure를 붙여 평문 연결로 새어나가지 않게 한다.
+function isSecureRequest(request) {
+  if (request.socket.encrypted) return true;
+  const forwarded = request.headers['x-forwarded-proto'];
+  return typeof forwarded === 'string' && forwarded.split(',')[0].trim() === 'https';
+}
+
 function isAuthenticated(request) {
   return adminAuth.isValidSession(sessionToken(request));
 }
@@ -95,10 +102,12 @@ function serveFrontend(response, requestPath) {
       return;
     }
 
+    // 관리 화면은 공용 PC의 디스크 캐시에 남지 않도록 저장 자체를 막는다.
+    const isAdminPage = path.basename(filePath).toLowerCase().startsWith('admin.');
     const extension = path.extname(filePath).toLowerCase();
     response.writeHead(200, {
       'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': isAdminPage ? 'no-store' : 'no-cache',
     });
     response.end(content);
   });
@@ -118,7 +127,7 @@ async function handleLogin(request, response) {
   }
 
   const clientKey = request.socket.remoteAddress || 'unknown';
-  const result = adminAuth.login(body.password, clientKey);
+  const result = await adminAuth.login(body.password, clientKey);
 
   if (result.locked) {
     sendJson(response, 429, {
@@ -139,6 +148,7 @@ async function handleLogin(request, response) {
     'HttpOnly',
     'SameSite=Strict',
     'Path=/',
+    ...(isSecureRequest(request) ? ['Secure'] : []),
   ].join('; ');
 
   sendJson(response, 200, { authenticated: true }, { 'Set-Cookie': cookie });
@@ -146,7 +156,8 @@ async function handleLogin(request, response) {
 
 function handleLogout(request, response) {
   adminAuth.destroySession(sessionToken(request));
-  const cookie = `${SESSION_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`;
+  const secure = isSecureRequest(request) ? '; Secure' : '';
+  const cookie = `${SESSION_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`;
   sendJson(response, 200, { authenticated: false }, { 'Set-Cookie': cookie });
 }
 

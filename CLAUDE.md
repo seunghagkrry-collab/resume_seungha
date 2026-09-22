@@ -131,6 +131,21 @@ The admin session is deliberately short-lived:
 - Server sessions idle out after 30 minutes and slide forward on each authenticated request.
 - The password input uses `autocomplete="off"` so browser password managers do not store it.
 - `ADMIN_PASSWORD` is deleted from `process.env` right after the hash is derived.
+- The cookie gains `Secure` when the request arrives over HTTPS (`x-forwarded-proto`).
+- `admin.*` files are served with `Cache-Control: no-store`.
+- Login verification uses async `crypto.scrypt`, never `scryptSync`. The sync version
+  blocks the event loop for ~0.2s per attempt, which stalls the whole site when login
+  attempts pile up. Keep `scryptSync` only for startup and the CLI password setter.
+
+## Deployment caveats
+
+- The lockout is keyed on `request.socket.remoteAddress`. Behind a reverse proxy every
+  visitor shares one address, so one attacker could lock out the owner. Parse
+  `x-forwarded-for` (from a trusted proxy only) before deploying publicly.
+- `admin.local.json` is gitignored, so a deployed server will not have it and will
+  generate a new random password. Set `ADMIN_PASSWORD` in the host environment instead.
+- Sessions live in process memory, so they are lost on restart and are not shared
+  across multiple instances.
 
 ## Validation commands
 
