@@ -5,7 +5,8 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 
 const CREDENTIAL_FILE = path.resolve(__dirname, '..', 'data', 'admin.local.json');
-const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+// 마지막 사용 시점부터 30분이 지나면 서버 쪽 세션을 버린다.
+const SESSION_IDLE_MS = 30 * 60 * 1000;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
 const KEY_LENGTH = 64;
@@ -52,11 +53,12 @@ function writeCredentialFile(credential) {
 
 // 평문 비밀번호는 저장하지 않는다. 해시만 보관하고 비교는 서버에서만 한다.
 let credential = null;
-let generatedPassword = null;
 
 function init() {
   if (process.env.ADMIN_PASSWORD) {
     credential = buildCredential(process.env.ADMIN_PASSWORD);
+    // 해시를 만든 뒤에는 환경변수에 평문을 남겨 두지 않는다.
+    delete process.env.ADMIN_PASSWORD;
     return { source: 'env' };
   }
 
@@ -66,10 +68,11 @@ function init() {
     return { source: 'file' };
   }
 
-  generatedPassword = crypto.randomBytes(6).toString('base64url');
-  credential = buildCredential(generatedPassword);
+  // 처음 만든 비밀번호는 콘솔에 한 번 보여주기 위해서만 반환하고 모듈에 보관하지 않는다.
+  const firstPassword = crypto.randomBytes(6).toString('base64url');
+  credential = buildCredential(firstPassword);
   writeCredentialFile(credential);
-  return { source: 'generated', password: generatedPassword };
+  return { source: 'generated', password: firstPassword };
 }
 
 function setPassword(password) {
@@ -121,8 +124,8 @@ function pruneSessions() {
 function createSession() {
   pruneSessions();
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { expiresAt: Date.now() + SESSION_TTL_MS });
-  return { token, maxAgeSeconds: Math.floor(SESSION_TTL_MS / 1000) };
+  sessions.set(token, { expiresAt: Date.now() + SESSION_IDLE_MS });
+  return { token };
 }
 
 function isValidSession(token) {
@@ -133,6 +136,8 @@ function isValidSession(token) {
     sessions.delete(token);
     return false;
   }
+  // 쓰는 동안에는 끊기지 않도록 만료 시각을 뒤로 민다.
+  session.expiresAt = Date.now() + SESSION_IDLE_MS;
   return true;
 }
 

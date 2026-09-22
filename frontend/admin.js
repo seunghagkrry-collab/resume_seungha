@@ -215,15 +215,34 @@
     }
   });
 
+  // 화면과 메모리에 남은 내용을 지운다. 비밀번호는 애초에 보관하지 않는다.
+  function clearAdminData() {
+    projects = [];
+    editingId = null;
+    listEl.textContent = '';
+    dupPanel.textContent = '';
+    dupPanel.hidden = true;
+    listSummary.textContent = '';
+    FIELDS.forEach((name) => setFieldValue(name, ''));
+    clearFormMessages();
+  }
+
   logoutBtn.addEventListener('click', async () => {
     try {
       await api('/api/admin/logout', { method: 'POST' });
     } catch (error) {
       // 이미 만료된 경우에도 로그인 화면으로 보낸다.
     }
-    projects = [];
-    editingId = null;
+    clearAdminData();
     showLogin();
+  });
+
+  // 창이나 탭을 닫으면 서버 세션을 바로 버려서, 다시 열 때 비밀번호를 새로 받는다.
+  window.addEventListener('pagehide', () => {
+    if (adminView.hidden) return;
+    if (typeof navigator.sendBeacon === 'function') {
+      navigator.sendBeacon('/api/admin/logout');
+    }
   });
 
   /* ---------- 목록 ---------- */

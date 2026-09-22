@@ -96,6 +96,7 @@ The server re-validates every write. Browser-side checks are for feedback only.
 - Preserve the existing visual design and Korean copy unless the task explicitly requests a UI change.
 - Do not commit secrets, local credentials, or database connection strings.
 - Never send the admin password or its hash to the browser. Only `{ authenticated: bool }`.
+- Keep the session cookie free of `Max-Age` and `Expires` so it dies when the browser closes.
 
 ## Important implementation notes
 
@@ -117,6 +118,19 @@ The server re-validates every write. Browser-side checks are for feedback only.
   because that information did not exist in the original HTML. The admin list marks
   them with an "입력 필요" badge. Re-saving them as 공개 requires filling those fields.
 - Sessions are stored in memory, so a server restart logs the admin out.
+- Closing or reloading the admin page sends a `sendBeacon` logout, so a refresh also
+  asks for the password again. This is intentional, not a bug.
+
+## Session policy
+
+The admin session is deliberately short-lived:
+
+- The cookie carries no `Max-Age`/`Expires`, so the browser drops it on close.
+- `pagehide` fires a `navigator.sendBeacon('/api/admin/logout')` that destroys the
+  server-side session immediately, even if the browser would have restored the cookie.
+- Server sessions idle out after 30 minutes and slide forward on each authenticated request.
+- The password input uses `autocomplete="off"` so browser password managers do not store it.
+- `ADMIN_PASSWORD` is deleted from `process.env` right after the hash is derived.
 
 ## Validation commands
 

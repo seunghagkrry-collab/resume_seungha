@@ -133,12 +133,12 @@ async function handleLogin(request, response) {
     return;
   }
 
+  // Max-Age나 Expires를 넣지 않으면 브라우저를 닫을 때 쿠키가 지워진다.
   const cookie = [
     `${SESSION_COOKIE}=${result.session.token}`,
     'HttpOnly',
     'SameSite=Strict',
     'Path=/',
-    `Max-Age=${result.session.maxAgeSeconds}`,
   ].join('; ');
 
   sendJson(response, 200, { authenticated: true }, { 'Set-Cookie': cookie });

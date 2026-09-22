@@ -51,9 +51,9 @@
     {
       "id": "p_2064ab4d43033791",
       "status": "published",
-      "title": "캠퍼스",
+      "title": "캠퍼스 내 조경 설계",
       "role": "모든거",
-      "description": "선도 화요일 프로젝트",
+      "description": "2024년 진행된 프로그램",
       "date": "2026-09-22",
       "teamSize": 4,
       "notes": "선도 화요일 프로젝트",
@@ -62,7 +62,7 @@
       "linkUrl": "",
       "linkLabel": "",
       "createdAt": "2026-09-22T05:28:01.496Z",
-      "updatedAt": "2026-09-22T05:28:10.970Z"
+      "updatedAt": "2026-09-22T05:36:45.412Z"
     }
   ]
 }
