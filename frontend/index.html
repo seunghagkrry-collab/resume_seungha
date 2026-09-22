@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>최승하의 그린스마트 캠퍼스 노트 🌱 | 상명대학교</title>
-  <meta name="description" content="상명대학교 그린스마트시티학과 최승하(202420778)의 아기자기한 선도대학 9/1 포트폴리오">
+  <meta name="description" content="상명대학교 그린스마트시티학과 최승하(202420778)의 아기자기한 선도대학 포트폴리오">
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,8 @@
         <a href="#intro">🌱 소개</a>
         <a href="#id-card">🪪 학생증</a>
         <a href="#major-story">🌳 전공이야기</a>
-        <a href="#project-story">🚀 선도대학 9/1</a>
+        <a href="#projects">🗂️ 프로젝트</a>
+        <a href="#project-story">🚀 선도대학</a>
         <a href="#location">📍 캠퍼스 위치</a>
         <a href="#contact">💌 연락처</a>
       </nav>
@@ -43,6 +44,31 @@
         <button class="btn-copy-top" onclick="copyPhone()">
           <span>📞 번호 복사</span>
         </button>
+
+        <div class="share-menu-wrap">
+          <button type="button" class="btn-share-top" id="share-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="share-dropdown">
+            <i class="ri-share-forward-line"></i>
+            <span>공유하기</span>
+            <i class="ri-arrow-down-s-line share-caret"></i>
+          </button>
+
+          <div class="share-dropdown" id="share-dropdown" role="menu" aria-labelledby="share-toggle" hidden>
+            <button type="button" class="share-item" role="menuitem" id="share-link-btn">
+              <i class="ri-link share-item-icon"></i>
+              <span class="share-item-text">
+                <strong>링크 공유</strong>
+                <em>이 페이지 주소를 복사해요</em>
+              </span>
+            </button>
+            <button type="button" class="share-item" role="menuitem" id="share-pdf-btn">
+              <i class="ri-file-text-line share-item-icon"></i>
+              <span class="share-item-text">
+                <strong>PDF 공유</strong>
+                <em>핵심 내용만 담은 문서로 저장해요</em>
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -51,13 +77,13 @@
 
     <!-- Hero / Intro Section -->
     <section class="hero-section" id="intro">
-      <div class="hero-sticker-badge">✨ 선도대학 9/1 프로젝트 참여 학생 ✨</div>
-      
+      <div class="hero-sticker-badge">✨ 선도대학 프로젝트 참여 학생 ✨</div>
+
       <div class="hero-layout">
         <!-- Cute Left Profile Card -->
         <div class="hero-profile-card">
           <div class="tape-sticker">📌 MY PROFILE</div>
-          
+
           <div class="avatar-circle">
             <span class="avatar-emoji">🧑‍🎓</span>
             <span class="avatar-sub-badge">🍀 상명대</span>
@@ -104,7 +130,7 @@
               함께 어우러진 살기 좋은 도시를 연구하는 곳이에요.
             </p>
             <p class="story-p">
-              <strong>선도대학 9/1</strong> 프로그램을 통해 지속 가능한 공간과 생태계를 가꾸는 
+              <strong>선도대학</strong> 프로그램을 통해 지속 가능한 공간과 생태계를 가꾸는 
               멋진 인재가 되기 위해 매일 즐겁게 탐구하고 있답니다! 🌿
             </p>
           </div>
@@ -161,7 +187,7 @@
               </div>
               <div class="id-field">
                 <span class="f-label">소 속</span>
-                <span class="f-value">공과대학 그린스마트시티학과</span>
+                <span class="f-value">융합기술대학 그린스마트시티학과</span>
               </div>
               <div class="id-field">
                 <span class="f-label">학 번</span>
@@ -275,27 +301,60 @@
       </div>
     </section>
 
-    <!-- Leading University 9/1 Project Section -->
+    <!-- Projects Section (분야별 필터) -->
+    <section class="section-wrap" id="projects">
+      <div class="section-heading-box">
+        <span class="sub-emoji">🗂️</span>
+        <h2 class="section-title">실습으로 만든 프로젝트 모음</h2>
+        <p class="section-desc">분야 버튼을 눌러 보고 싶은 프로젝트만 골라서 확인할 수 있어요.</p>
+      </div>
+
+      <div class="project-filter-panel">
+        <div class="filter-btn-row" role="group" aria-label="분야별 필터">
+          <button type="button" class="filter-chip is-active" data-filter="전체" aria-pressed="true">전체</button>
+          <button type="button" class="filter-chip" data-filter="웹" aria-pressed="false">웹</button>
+          <button type="button" class="filter-chip" data-filter="데이터" aria-pressed="false">데이터</button>
+          <button type="button" class="filter-chip" data-filter="디자인" aria-pressed="false">디자인</button>
+        </div>
+
+        <p class="filter-count-text" id="project-count" aria-live="polite">프로젝트를 불러오는 중</p>
+
+        <div class="project-card-grid" id="project-grid" hidden>
+        </div>
+
+        <p class="project-empty-msg" id="project-status" aria-live="polite">
+          <span class="empty-emoji">⏳</span>
+          프로젝트를 불러오는 중이에요.
+        </p>
+
+        <p class="project-empty-msg" id="project-empty" hidden>
+          <span class="empty-emoji">🌱</span>
+          해당 분야의 프로젝트가 아직 없어요. 다른 분야를 눌러보세요.
+        </p>
+      </div>
+    </section>
+
+    <!-- Leading University Project Section -->
     <section class="section-wrap" id="project-story">
       <div class="section-heading-box">
         <span class="sub-emoji">🚀</span>
-        <h2 class="section-title">선도대학 9/1 이야기</h2>
-        <p class="section-desc">9월 1일 자로 기록된 선도대학 프로젝트에 대한 상세 부연설명입니다.</p>
+        <h2 class="section-title">선도대학 이야기</h2>
+        <p class="section-desc">선도대학 프로젝트에 대한 상세 부연설명입니다.</p>
       </div>
 
       <div class="project-board-card">
         <div class="board-header">
           <div class="board-badge">✨ 선도대학(Leading University) 트랙</div>
-          <h3>상명대학교 그린스마트 선도대학 프로젝트 (9/1)</h3>
+          <h3>상명대학교 그린스마트 선도대학 프로젝트</h3>
           <p class="board-sub">미래 사회가 필요로 하는 융합형 스마트 그린 인재 양성 프로젝트</p>
         </div>
 
         <div class="board-grid">
           <div class="board-item">
-            <span class="b-icon">📅</span>
+            <span class="b-icon">🎓</span>
             <div class="b-text">
-              <span class="b-label">프로젝트 기준일</span>
-              <span class="b-val">선도대학 9/1</span>
+              <span class="b-label">참여 프로그램</span>
+              <span class="b-val">선도대학 프로젝트</span>
               <span class="b-subtext">새 학기 시작과 함께 도약하는 성장 기록</span>
             </div>
           </div>
@@ -331,7 +390,7 @@
         <div class="board-footer-quote">
           <span class="quote-leaf">🌱</span>
           <p>
-            <strong>"선도대학 9/1"</strong>은 단순한 날짜 메모를 넘어, 
+            <strong>"선도대학 프로젝트"</strong>는 단순한 기록을 넘어, 
             상명대학교의 훌륭한 인프라 속에서 미래형 그린스마트시티 전문가로 한 걸음 더 나아가는 
             최승하의 성실한 발걸음을 뜻합니다! ✨
           </p>
@@ -355,7 +414,7 @@
             <p class="map-addr-text">충청남도 천안시 동남구 상명대길 31</p>
             <span class="map-dept-tag">그린스마트시티학과 실습 & 연구동</span>
           </div>
-          
+
           <div class="map-btns-row">
             <button onclick="copyAddress()" class="btn-map-action">
               <i class="ri-file-copy-line"></i> 주소 복사하기
@@ -447,7 +506,7 @@
       </p>
       <div class="footer-divider"></div>
       <p class="footer-copyright">
-        선도대학 9/1 프로젝트 포트폴리오 | © 2026 최승하. All Rights Reserved. 🍀
+        선도대학 프로젝트 포트폴리오 | © 2026 최승하. All Rights Reserved. 🍀
       </p>
     </div>
   </footer>
@@ -457,6 +516,9 @@
     <span class="toast-icon">✨</span>
     <span id="toast-msg">복사되었습니다!</span>
   </div>
+
+  <!-- 구조화된 PDF 문서 (화면에서는 숨김, 인쇄할 때만 나타남) -->
+  <div id="pdf-doc" class="pdf-doc" aria-hidden="true"></div>
 
   <script src="app.js"></script>
 </body>

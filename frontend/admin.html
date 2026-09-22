@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>프로젝트 관리자</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- 스크립트가 실행되지 않으면 화면이 조용히 멈춘다. 그 상태를 눈에 보이게 알린다. -->
+  <div class="boot-alert" id="boot-alert" hidden>
+    <strong>화면 기능을 불러오지 못했어요.</strong>
+    <span id="boot-detail"></span>
+    <span class="boot-help">브라우저 주소가 <code>http://localhost:3000/admin</code> 인지 확인하고, Ctrl+F5로 새로고침해 주세요.</span>
+  </div>
+
+  <script>
+    // admin.js가 정상 실행되면 이 값을 true로 바꾼다.
+    window.__adminBooted = false;
+
+    function showBootAlert(detail) {
+      var box = document.getElementById('boot-alert');
+      var text = document.getElementById('boot-detail');
+      if (!box) return;
+      if (text && detail) text.textContent = detail;
+      box.hidden = false;
+    }
+
+    window.addEventListener('error', function (event) {
+      showBootAlert('오류: ' + (event.message || '알 수 없는 오류'));
+    });
+
+    window.addEventListener('load', function () {
+      if (!window.__adminBooted) {
+        showBootAlert('admin.js가 실행되지 않았어요.');
+      }
+    });
+  </script>
+
+  <!-- 로그인 화면 -->
+  <section class="login-screen" id="login-view">
+    <form class="login-card" id="login-form" autocomplete="off" onsubmit="return false;">
+      <span class="login-emoji">🔒</span>
+      <h1 class="login-title">프로젝트 관리자</h1>
+      <p class="login-desc">비밀번호를 입력하면 프로젝트를 관리할 수 있어요.</p>
+
+      <label class="field-label" for="password-input">비밀번호</label>
+      <input
+        class="text-input"
+        type="password"
+        id="password-input"
+        placeholder="관리자 비밀번호를 입력하세요"
+        autocomplete="current-password"
+        required
+      >
+
+      <p class="form-alert" id="login-alert" role="alert" hidden></p>
+
+      <button type="submit" class="btn btn-primary btn-block" id="login-btn">로그인</button>
+      <a class="login-back" href="/">← 포트폴리오 사이트로 돌아가기</a>
+    </form>
+  </section>
+
+  <!-- 관리 화면 -->
+  <div class="admin-screen" id="admin-view" hidden>
+
+    <header class="admin-top">
+      <div class="admin-top-left">
+        <span class="admin-emoji">🗂️</span>
+        <div>
+          <h1 class="admin-title">프로젝트 관리자</h1>
+          <p class="admin-sub">여기서 저장하면 포트폴리오 사이트에 바로 반영돼요.</p>
+        </div>
+      </div>
+      <div class="admin-top-right">
+        <a class="btn btn-ghost" href="/" target="_blank" rel="noopener noreferrer">사이트 보기</a>
+        <button type="button" class="btn btn-ghost" id="logout-btn">로그아웃</button>
+      </div>
+    </header>
+
+    <main class="admin-body">
+
+      <!-- 프로젝트 목록 -->
+      <aside class="list-panel">
+        <div class="list-head">
+          <h2 class="panel-title">프로젝트 목록</h2>
+          <button type="button" class="btn btn-primary btn-small" id="new-btn">+ 새 프로젝트</button>
+        </div>
+        <p class="list-summary" id="list-summary">불러오는 중이에요.</p>
+        <div class="dup-panel" id="dup-panel" hidden></div>
+        <ul class="project-list" id="project-list"></ul>
+      </aside>
+
+      <!-- 입력 폼 -->
+      <section class="form-panel">
+        <form id="project-form" autocomplete="off" novalidate>
+          <div class="form-head">
+            <h2 class="panel-title" id="form-title">새 프로젝트</h2>
+            <span class="form-badge" id="form-badge" hidden>수정 중</span>
+          </div>
+
+          <p class="form-alert" id="form-alert" role="alert" hidden></p>
+          <p class="form-ok" id="form-ok" role="status" hidden></p>
+
+          <fieldset class="form-group">
+            <legend class="group-legend">프로젝트 정보</legend>
+
+            <div class="field">
+              <label class="field-label" for="f-title">제목 <span class="req">필수</span></label>
+              <input class="text-input" type="text" id="f-title" name="title"
+                     placeholder="예) 캠퍼스 에너지 안내 화면 만들기" maxlength="120">
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="f-role">내가 한 역할 <span class="req">필수</span></label>
+              <input class="text-input" type="text" id="f-role" name="role"
+                     placeholder="예) 화면 구성과 카드 디자인 담당" maxlength="200">
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="f-description">설명 <span class="req">필수</span></label>
+              <textarea class="text-input text-area" id="f-description" name="description" rows="4"
+                        placeholder="예) 건물별 에너지 사용량을 쉽게 찾아볼 수 있도록 안내 화면을 만들었습니다."
+                        maxlength="2000"></textarea>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="f-date">날짜 <span class="req">필수</span></label>
+                <input class="text-input" type="text" id="f-date" name="date"
+                       placeholder="예) 2026-03-15" data-date-input>
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="f-teamSize">참여인원 수 <span class="req">필수</span></label>
+                <input class="text-input" type="number" id="f-teamSize" name="teamSize"
+                       placeholder="예) 4" min="1" max="999">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="f-notes">참고사항 <span class="opt">선택</span></label>
+              <textarea class="text-input text-area" id="f-notes" name="notes" rows="3"
+                        placeholder="예) 수업 팀 과제로 진행했고, 실제 운영은 하지 않았습니다."
+                        maxlength="1000"></textarea>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-group">
+            <legend class="group-legend">웹사이트 표시 설정</legend>
+
+            <div class="field">
+              <label class="field-label" for="f-category">분야 <span class="req">필수</span></label>
+              <select class="text-input" id="f-category" name="category">
+                <option value="">분야를 선택하세요</option>
+                <option value="웹">웹</option>
+                <option value="데이터">데이터</option>
+                <option value="디자인">디자인</option>
+              </select>
+              <p class="field-help">사이트의 분야 필터 버튼에 사용돼요.</p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="f-result">확인된 결과 <span class="opt">선택</span></label>
+              <input class="text-input" type="text" id="f-result" name="result"
+                     placeholder="예) 가상 건물 3개의 안내 페이지 제작" maxlength="300">
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="f-linkUrl">링크 주소 <span class="opt">선택</span></label>
+                <input class="text-input" type="url" id="f-linkUrl" name="linkUrl"
+                       placeholder="예) https://www.smu.ac.kr">
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="f-linkLabel">링크 이름 <span class="opt">선택</span></label>
+                <input class="text-input" type="text" id="f-linkLabel" name="linkLabel"
+                       placeholder="예) 상명대학교 홈페이지 열기" maxlength="100">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-group">
+            <legend class="group-legend">공개 상태</legend>
+
+            <div class="status-options">
+              <label class="status-option">
+                <input type="radio" name="status" value="draft" checked>
+                <span class="status-body">
+                  <span class="status-name">📝 초안</span>
+                  <span class="status-desc">빈칸이 있어도 저장돼요. 사이트에는 보이지 않아요.</span>
+                </span>
+              </label>
+
+              <label class="status-option">
+                <input type="radio" name="status" value="published">
+                <span class="status-body">
+                  <span class="status-name">🌍 공개</span>
+                  <span class="status-desc">참고사항을 뺀 모든 칸이 채워져야 저장돼요. 사이트에 보여요.</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="save-btn">저장</button>
+            <button type="button" class="btn btn-ghost" id="cancel-btn" hidden>취소</button>
+            <button type="button" class="btn btn-danger" id="delete-btn" hidden>삭제</button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

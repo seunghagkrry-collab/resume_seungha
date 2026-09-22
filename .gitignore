@@ -1,0 +1,7 @@
+# 로컬 관리자 자격 증명 (절대 커밋하지 않는다)
+backend/data/admin.local.json
+
+# 저장 중 생성되는 임시 파일
+*.tmp
+
+node_modules/

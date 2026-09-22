@@ -1,0 +1,630 @@
+/* ==========================================================================
+   프로젝트 관리자 화면
+   메인 사이트(style.css)와 같은 팔레트를 쓰되 파일은 분리해 둔다.
+   ========================================================================== */
+
+:root {
+  --bg-page: #faf7f2;
+  --bg-card: #ffffff;
+  --bg-card-sub: #f6f3ec;
+
+  --primary-green: #3b7a57;
+  --primary-green-hover: #2e6244;
+  --primary-green-light: #eaf4ed;
+  --primary-green-border: #cde6d4;
+
+  --accent-yellow: #fef3c7;
+  --accent-yellow-dark: #b45309;
+  --accent-yellow-border: #fde68a;
+
+  --accent-pink: #ffe4e6;
+  --accent-pink-dark: #be123c;
+  --accent-pink-border: #fecdd3;
+
+  --text-main: #2d3748;
+  --text-sub: #5a6a80;
+  --text-muted: #8c9ba5;
+
+  --border-soft: #ede6dc;
+  --border-card: #e8e0d5;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+
+  --shadow-soft: 0 4px 14px rgba(140, 120, 100, 0.08);
+  --shadow-hover: 0 8px 24px rgba(140, 120, 100, 0.14);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   공통 요소
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-primary {
+  background: var(--primary-green);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-green-hover);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-ghost {
+  background: var(--bg-card);
+  color: var(--text-sub);
+  border-color: var(--border-card);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-card-sub);
+  color: var(--text-main);
+}
+
+.btn-danger {
+  background: var(--accent-pink);
+  color: var(--accent-pink-dark);
+  border-color: var(--accent-pink-border);
+}
+
+.btn-danger:hover {
+  background: #fecdd3;
+}
+
+.btn-small {
+  padding: 8px 15px;
+  font-size: 0.86rem;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.panel-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.form-alert,
+.form-ok {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  margin-bottom: 18px;
+}
+
+.form-alert {
+  background: var(--accent-pink);
+  color: var(--accent-pink-dark);
+  border: 1px solid var(--accent-pink-border);
+  white-space: pre-line;
+}
+
+.form-ok {
+  background: var(--primary-green-light);
+  color: var(--primary-green-hover);
+  border: 1px solid var(--primary-green-border);
+}
+
+/* ==========================================================================
+   실행 실패 알림 (스크립트가 멈췄을 때만 보인다)
+   ========================================================================== */
+
+.boot-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 16px 22px;
+  background: var(--accent-pink);
+  color: var(--accent-pink-dark);
+  border-bottom: 1px solid var(--accent-pink-border);
+  font-size: 0.9rem;
+}
+
+.boot-help {
+  color: var(--text-sub);
+  font-size: 0.84rem;
+}
+
+.boot-alert code {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.86rem;
+}
+
+/* ==========================================================================
+   로그인 화면
+   ========================================================================== */
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 390px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 40px 32px 32px;
+  text-align: center;
+}
+
+.login-emoji {
+  font-size: 2.4rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.login-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.login-desc {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  margin-bottom: 26px;
+}
+
+.login-card .field-label {
+  text-align: left;
+}
+
+.login-card .text-input {
+  margin-bottom: 18px;
+}
+
+.login-back {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.login-back:hover {
+  color: var(--primary-green);
+}
+
+/* ==========================================================================
+   관리 화면 레이아웃
+   ========================================================================== */
+
+.admin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 22px 30px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-card);
+}
+
+.admin-top-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-emoji {
+  font-size: 1.9rem;
+}
+
+.admin-title {
+  font-size: 1.22rem;
+  font-weight: 700;
+}
+
+.admin-sub {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+}
+
+.admin-top-right {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-body {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 26px 30px 60px;
+}
+
+/* ==========================================================================
+   목록 패널
+   ========================================================================== */
+
+.list-panel,
+.form-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 22px;
+}
+
+.list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.list-summary {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.dup-panel {
+  background: var(--accent-yellow);
+  border: 1px solid var(--accent-yellow-border);
+  border-radius: var(--radius-md);
+  padding: 13px 15px;
+  margin-bottom: 14px;
+}
+
+.dup-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-yellow-dark);
+  margin-bottom: 4px;
+}
+
+.dup-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+
+.dup-text {
+  flex: 1 1 100%;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.project-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-height: 62vh;
+  overflow-y: auto;
+}
+
+.list-item {
+  width: 100%;
+  text-align: left;
+  background: var(--bg-card-sub);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 13px 15px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.list-item:hover {
+  border-color: var(--primary-green-border);
+}
+
+.list-item.is-active {
+  background: var(--primary-green-light);
+  border-color: var(--primary-green);
+}
+
+.item-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.item-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.item-meta {
+  font-size: 0.79rem;
+  color: var(--text-muted);
+}
+
+.status-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.status-tag.is-published {
+  background: var(--primary-green-light);
+  color: var(--primary-green-hover);
+  border-color: var(--primary-green-border);
+}
+
+.status-tag.is-draft {
+  background: var(--accent-yellow);
+  color: var(--accent-yellow-dark);
+  border-color: var(--accent-yellow-border);
+}
+
+.warn-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-pink);
+  color: var(--accent-pink-dark);
+  border: 1px solid var(--accent-pink-border);
+  white-space: nowrap;
+}
+
+.list-empty {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 26px 10px;
+}
+
+/* ==========================================================================
+   입력 폼
+   ========================================================================== */
+
+.form-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.form-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-yellow);
+  color: var(--accent-yellow-dark);
+  border: 1px solid var(--accent-yellow-border);
+}
+
+.form-group {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 18px 20px 20px;
+  margin-bottom: 20px;
+}
+
+.group-legend {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  padding: 0 8px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  margin-bottom: 7px;
+}
+
+.req,
+.opt {
+  font-size: 0.71rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+
+.req {
+  background: var(--accent-pink);
+  color: var(--accent-pink-dark);
+}
+
+.opt {
+  background: var(--bg-card-sub);
+  color: var(--text-muted);
+}
+
+.text-input {
+  width: 100%;
+  padding: 11px 14px;
+  font-family: inherit;
+  font-size: 0.93rem;
+  color: var(--text-main);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px var(--primary-green-light);
+}
+
+.text-input.is-invalid {
+  border-color: var(--accent-pink-dark);
+  background: #fff6f7;
+}
+
+.text-area {
+  resize: vertical;
+  min-height: 84px;
+}
+
+/* 빈칸 예시는 옅게 보이고, 입력을 시작하면 사라진다. */
+.text-input::placeholder {
+  color: #b9c2cc;
+  opacity: 1;
+}
+
+.field-help {
+  font-size: 0.79rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ==========================================================================
+   공개 상태 선택
+   ========================================================================== */
+
+.status-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.status-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 15px;
+  background: var(--bg-card-sub);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.status-option:hover {
+  border-color: var(--primary-green-border);
+}
+
+.status-option:has(input:checked) {
+  background: var(--primary-green-light);
+  border-color: var(--primary-green);
+}
+
+.status-option input {
+  margin-top: 4px;
+  accent-color: var(--primary-green);
+  flex-shrink: 0;
+}
+
+.status-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.status-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.status-desc {
+  font-size: 0.79rem;
+  color: var(--text-sub);
+  line-height: 1.45;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   반응형
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .admin-body {
+    grid-template-columns: 1fr;
+    padding: 20px 18px 50px;
+  }
+
+  .project-list {
+    max-height: 300px;
+  }
+
+  .field-row,
+  .status-options {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-top {
+    padding: 18px;
+  }
+}

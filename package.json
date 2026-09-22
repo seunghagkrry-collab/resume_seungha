@@ -1,0 +1,14 @@
+{
+  "name": "choi-seung-ha-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Separated frontend and backend portfolio application",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "set-password": "node scripts/setAdminPassword.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

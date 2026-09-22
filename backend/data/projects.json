@@ -1,0 +1,68 @@
+{
+  "projects": [
+    {
+      "id": "p_3f9594bb1265d59d",
+      "status": "published",
+      "title": "캠퍼스 에너지 안내",
+      "role": "화면 구성과 카드 디자인",
+      "description": "건물별 정보를 쉽게 찾는 소개 화면",
+      "date": "",
+      "teamSize": null,
+      "notes": "",
+      "category": "웹",
+      "result": "가상 건물 3개의 안내 페이지 제작",
+      "linkUrl": "https://www.smu.ac.kr/kor/index.do",
+      "linkLabel": "상명대학교 홈페이지 열기",
+      "createdAt": "2026-09-22T05:04:59.595Z",
+      "updatedAt": "2026-09-22T05:04:59.595Z"
+    },
+    {
+      "id": "p_f0ac5fc14db077c2",
+      "status": "published",
+      "title": "걷기 좋은 길 기록",
+      "role": "기록 항목 설계와 표 정리",
+      "description": "걷기 경험을 비교하는 기록 정리",
+      "date": "",
+      "teamSize": null,
+      "notes": "",
+      "category": "데이터",
+      "result": "가상 경로 3개의 비교 표 작성",
+      "linkUrl": "https://map.naver.com/p/entry/place/1133933276?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1%26additionalHeight%3D76%26timestamp%3D202609151500%26locale%3Dko%26svcName%3Dmap_pcv5",
+      "linkLabel": "천호지 네이버 지도 열기",
+      "createdAt": "2026-09-22T05:04:59.595Z",
+      "updatedAt": "2026-09-22T05:04:59.595Z"
+    },
+    {
+      "id": "p_e36eb1429cc4cd2e",
+      "status": "published",
+      "title": "우리 동네 쉼터 지도",
+      "role": "소개 문구와 화면 배치",
+      "description": "쉼터 정보를 읽기 쉽게 소개",
+      "date": "",
+      "teamSize": null,
+      "notes": "",
+      "category": "웹",
+      "result": "실제 이용 효과는 아직 측정하지 않음",
+      "linkUrl": "https://map.naver.com/p/entry/place/13192190?c=15.00,0,0,0,dh&placePath=%2Fhome%3Ffrom%3Dmap%26fromPanelNum%3D1%26additionalHeight%3D76%26timestamp%3D202609151502%26locale%3Dko%26svcName%3Dmap_pcv5",
+      "linkLabel": "천안 삼거리공원 네이버 지도 열기",
+      "createdAt": "2026-09-22T05:04:59.595Z",
+      "updatedAt": "2026-09-22T05:04:59.595Z"
+    },
+    {
+      "id": "p_2064ab4d43033791",
+      "status": "published",
+      "title": "캠퍼스",
+      "role": "모든거",
+      "description": "선도 화요일 프로젝트",
+      "date": "2026-09-22",
+      "teamSize": 4,
+      "notes": "선도 화요일 프로젝트",
+      "category": "데이터",
+      "result": "",
+      "linkUrl": "",
+      "linkLabel": "",
+      "createdAt": "2026-09-22T05:28:01.496Z",
+      "updatedAt": "2026-09-22T05:28:10.970Z"
+    }
+  ]
+}

@@ -1293,3 +1293,606 @@ button {
     flex-direction: column;
   }
 }
+
+/* ==========================================================================
+   Projects Section (분야별 필터)
+   ========================================================================== */
+.project-filter-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 28px 26px 32px;
+}
+
+.filter-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-sub);
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.filter-chip:hover {
+  background: var(--primary-green-light);
+  border-color: var(--primary-green-border);
+  color: var(--primary-green);
+}
+
+.filter-chip:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 2px;
+}
+
+.filter-chip.is-active {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(59, 122, 87, 0.25);
+}
+
+.filter-count-text {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.project-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 22px 20px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.project-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+}
+
+.p-category-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  background: var(--primary-green-light);
+  border: 1px solid var(--primary-green-border);
+  border-radius: var(--radius-pill);
+  padding: 2px 11px;
+}
+
+.p-card-title {
+  margin-top: 12px;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.p-card-desc {
+  margin-top: 6px;
+  font-size: 0.92rem;
+  color: var(--text-sub);
+}
+
+.p-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.p-toggle-btn:hover {
+  background: var(--primary-green-light);
+  border-color: var(--primary-green-border);
+  color: var(--primary-green);
+}
+
+.p-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 2px;
+}
+
+.toggle-arrow {
+  transition: transform 0.2s ease;
+}
+
+.p-toggle-btn[aria-expanded="true"] .toggle-arrow {
+  transform: rotate(180deg);
+}
+
+.p-detail-box {
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-card);
+}
+
+.p-detail-row + .p-detail-row {
+  margin-top: 12px;
+}
+
+.p-detail-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.p-detail-value {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.88rem;
+  color: var(--text-sub);
+}
+
+.p-link {
+  margin-top: auto;
+  padding-top: 18px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--primary-green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.p-link:hover {
+  color: var(--primary-green-hover);
+}
+
+.p-link-note {
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.project-empty-msg {
+  margin-top: 14px;
+  padding: 34px 20px;
+  text-align: center;
+  font-size: 0.94rem;
+  color: var(--text-sub);
+  background: var(--bg-card-sub);
+  border: 1px dashed var(--border-card);
+  border-radius: var(--radius-md);
+}
+
+.empty-emoji {
+  display: block;
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 640px) {
+  .project-filter-panel {
+    padding: 22px 16px 24px;
+  }
+
+  .project-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* display 값이 지정된 요소도 hidden 속성이 확실히 먹도록 */
+.project-card[hidden],
+.project-card-grid[hidden] {
+  display: none;
+}
+
+/* 카드 제목 & 자료 링크 - 외부 사이트로 이동 */
+.p-title-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-main);
+  transition: color 0.18s ease;
+}
+
+.p-title-link:hover {
+  color: var(--primary-green);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.p-title-link:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.title-ext-icon {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.p-title-link:hover .title-ext-icon {
+  color: var(--primary-green);
+}
+
+.p-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.p-link:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   공유하기 드롭다운
+   ========================================================================== */
+.share-menu-wrap {
+  position: relative;
+}
+
+.btn-share-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #ffffff;
+  background: var(--primary-green);
+  border: 1px solid var(--primary-green);
+  border-radius: var(--radius-pill);
+  padding: 7px 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-share-top:hover {
+  background: var(--primary-green-hover);
+  border-color: var(--primary-green-hover);
+  transform: translateY(-1px);
+}
+
+.btn-share-top:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: 2px;
+}
+
+.share-caret {
+  font-size: 0.95rem;
+  transition: transform 0.2s ease;
+}
+
+.btn-share-top.is-open .share-caret {
+  transform: rotate(180deg);
+}
+
+.share-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 200;
+  width: 268px;
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hover);
+}
+
+.share-dropdown[hidden] {
+  display: none;
+}
+
+.share-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 11px;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.share-item:hover {
+  background: var(--primary-green-light);
+}
+
+.share-item:focus-visible {
+  outline: 2px solid var(--primary-green);
+  outline-offset: -2px;
+}
+
+.share-item-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 1.05rem;
+  color: var(--primary-green);
+}
+
+.share-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.share-item-text strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.share-item-text em {
+  font-size: 0.78rem;
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+/* 화면에서는 PDF 문서를 숨긴다. */
+.pdf-doc {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .btn-share-top span {
+    display: none;
+  }
+  .btn-share-top {
+    padding: 7px 11px;
+  }
+  .share-dropdown {
+    width: 240px;
+  }
+}
+
+/* ==========================================================================
+   인쇄 - 화면 대신 구조화된 문서만 출력
+   ========================================================================== */
+@page {
+  size: A4;
+  margin: 16mm 15mm 14mm;
+}
+
+@media print {
+  /* 웹페이지 화면은 통째로 빼고 문서만 남긴다. */
+  body > *:not(.pdf-doc) {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+  }
+
+  .pdf-doc {
+    display: block;
+    color: #1a202c;
+    font-size: 10.2pt;
+    line-height: 1.6;
+    word-break: keep-all;
+  }
+
+  .pdf-doc a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* 문서 머리말 */
+  .pdf-head {
+    padding-bottom: 12pt;
+    border-bottom: 2pt solid #3b7a57;
+    margin-bottom: 16pt;
+  }
+
+  .pdf-kicker {
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #3b7a57;
+    margin-bottom: 3pt;
+  }
+
+  .pdf-name {
+    font-size: 22pt;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+  }
+
+  .pdf-role {
+    font-size: 10.5pt;
+    color: #4a5568;
+    margin-top: 2pt;
+  }
+
+  .pdf-meta {
+    width: 100%;
+    margin-top: 11pt;
+    border-collapse: collapse;
+    font-size: 9.4pt;
+  }
+
+  .pdf-meta th,
+  .pdf-meta td {
+    padding: 4pt 8pt;
+    border: 0.6pt solid #d8d2c8;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .pdf-meta th {
+    width: 15%;
+    background: #f4f1ea;
+    font-weight: 700;
+    color: #4a5568;
+    white-space: nowrap;
+  }
+
+  /* 본문 구역 */
+  .pdf-section {
+    margin-bottom: 16pt;
+  }
+
+  .pdf-h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 7pt;
+    font-size: 12.5pt;
+    font-weight: 800;
+    color: #2d3748;
+    padding-bottom: 4pt;
+    margin-bottom: 8pt;
+    border-bottom: 1pt solid #3b7a57;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .pdf-count {
+    font-size: 8.8pt;
+    font-weight: 600;
+    color: #718096;
+  }
+
+  .pdf-block {
+    margin-bottom: 10pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pdf-h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 6pt;
+    font-size: 10.6pt;
+    font-weight: 700;
+    margin-bottom: 2pt;
+  }
+
+  .pdf-tag {
+    font-size: 8pt;
+    font-weight: 600;
+    color: #3b7a57;
+    border: 0.6pt solid #cde6d4;
+    border-radius: 8pt;
+    padding: 0.5pt 5pt;
+  }
+
+  .pdf-p {
+    margin-bottom: 4pt;
+    text-align: justify;
+  }
+
+  .pdf-list {
+    margin: 3pt 0 0 14pt;
+  }
+
+  .pdf-list li {
+    margin-bottom: 2pt;
+    font-size: 9.6pt;
+    color: #4a5568;
+  }
+
+  /* 표 */
+  .pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+
+  .pdf-table th,
+  .pdf-table td {
+    padding: 5pt 7pt;
+    border: 0.6pt solid #d8d2c8;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .pdf-table thead th {
+    background: #eaf4ed;
+    font-weight: 700;
+    color: #2e6244;
+  }
+
+  .pdf-table tbody th {
+    background: #f4f1ea;
+    font-weight: 700;
+    color: #4a5568;
+  }
+
+  .pdf-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pdf-sub {
+    font-size: 8.8pt;
+    color: #718096;
+  }
+
+  .pdf-refs {
+    margin-top: 8pt;
+    padding: 7pt 9pt;
+    background: #f7f5f0;
+    border-left: 2pt solid #cde6d4;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pdf-refs-title {
+    font-size: 9pt;
+    font-weight: 700;
+    color: #4a5568;
+  }
+
+  .pdf-refs .pdf-list li {
+    font-size: 8.4pt;
+    word-break: break-all;
+  }
+
+  /* 문서 꼬리말 */
+  .pdf-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 10pt;
+    padding-top: 8pt;
+    margin-top: 4pt;
+    border-top: 0.6pt solid #d8d2c8;
+    font-size: 8.4pt;
+    color: #718096;
+  }
+}
