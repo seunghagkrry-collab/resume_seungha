@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node backend/server.js",
-    "set-password": "node scripts/setAdminPassword.js"
+    "set-password": "node scripts/setAdminPassword.js",
+    "publish": "node scripts/publishProjects.js"
   },
   "engines": {
     "node": ">=18"

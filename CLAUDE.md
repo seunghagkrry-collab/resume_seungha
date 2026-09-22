@@ -137,35 +137,43 @@ The admin session is deliberately short-lived:
   blocks the event loop for ~0.2s per attempt, which stalls the whole site when login
   attempts pile up. Keep `scryptSync` only for startup and the CLI password setter.
 
-## Vercel deployment
+## Deployment
 
-`vercel.json` rewrites every path to `api/index.js`, which reuses the same
-`requestHandler` that `backend/server.js` serves locally. There is no build step and
-no dependencies, so a push to `main` is enough to redeploy.
+Two hosts, one address for the browser:
 
-Vercel's filesystem is read-only and each request may hit a different instance, so
-writes would vanish and in-memory sessions would not be shared. `backend/runtime.js`
-detects this (`process.env.VERCEL`) and the app responds accordingly:
+- **Vercel** serves `frontend/` statically and rewrites `/api/*` to Render.
+  Because the browser only ever talks to the Vercel domain there is no CORS
+  setup and the session cookie keeps `SameSite=Strict`.
+- **Render** (`render.yaml`, free plan) runs `node backend/server.js` and answers the API.
+  The service must stay named `resume-seungha-api`; `vercel.json` points at
+  `https://resume-seungha-api.onrender.com`.
 
-- The public site works fully; `/api/portfolio` reads the committed `projects.json`.
-- `projectStore.create/update/remove` return `{ readOnly: true }` and the API answers 503.
-- `adminAuth.init()` refuses to generate a password it cannot persist.
-- `/api/admin/session` reports `adminAvailable: false` with a reason, and the admin
-  page disables its login form instead of failing silently.
+Live: https://resume-seungha.vercel.app
 
-So projects are edited with the local admin page, then `projects.json` is committed
-and pushed. Making the deployed admin page writable needs external storage
-(Vercel KV/Postgres, Supabase) or a host with a persistent disk (Render, Railway).
+### Where projects are edited
 
-## Deployment caveats
+Render free instances have no persistent disk, so anything written there is lost
+when the instance restarts. Rather than lose work silently, `backend/runtime.js`
+marks such hosts as ephemeral and `isWritable()` returns false, which closes the
+admin page there with an explanation.
 
-- The lockout is keyed on `request.socket.remoteAddress`. Behind a reverse proxy every
-  visitor shares one address, so one attacker could lock out the owner. Parse
-  `x-forwarded-for` (from a trusted proxy only) before deploying publicly.
-- `admin.local.json` is gitignored, so a deployed server will not have it and will
-  generate a new random password. Set `ADMIN_PASSWORD` in the host environment instead.
-- Sessions live in process memory, so they are lost on restart and are not shared
-  across multiple instances.
+So the flow is:
+
+1. `npm.cmd start` locally, edit at http://localhost:3000/admin
+2. `npm.cmd run publish` — commits only `backend/data/projects.json` and pushes
+3. Render redeploys and the public site shows the change
+
+To make the deployed admin writable instead, set `BLOB_READ_WRITE_TOKEN` to a real
+Vercel Blob token. `backend/data/storage.js` then stores projects in Blob and
+`isWritable()` opens up again, with no other change needed.
+
+### Storage behaviour
+
+- Reads that fail fall back to the committed `projects.json`, so a storage outage
+  never blanks the portfolio.
+- Writes that fail return 503 with the reason; they are never swallowed.
+- `GET /api/health` reports `storage: { mode, healthy, problem }` for diagnosing
+  a deployed server without shell access.
 
 ## Validation commands
 

@@ -7,7 +7,7 @@ const { getPortfolioData } = require('./data/portfolioData');
 const projectStore = require('./data/projectStore');
 const adminAuth = require('./auth/adminAuth');
 const storage = require('./data/storage');
-const { isServerless, isWritable } = require('./runtime');
+const { isEphemeralHost, isWritable } = require('./runtime');
 
 const PORT = Number(process.env.PORT) || 3000;
 const FRONTEND_ROOT = path.resolve(__dirname, '..', 'frontend');
@@ -302,8 +302,8 @@ const credentialInfo = adminAuth.init();
 
 // 읽기 전용 환경에서는 저장이 사라지므로 관리 기능을 아예 닫고 이유를 알려준다.
 const ADMIN_AVAILABLE = isWritable() && adminAuth.hasCredential();
-const ADMIN_UNAVAILABLE_MESSAGE = isServerless()
-  ? '이 주소는 읽기 전용으로 배포돼 있어서 프로젝트를 저장할 수 없어요. 내 컴퓨터에서 실행한 관리자 페이지를 이용해 주세요.'
+const ADMIN_UNAVAILABLE_MESSAGE = isEphemeralHost()
+  ? '배포된 주소에서는 저장한 내용이 서버 재시작 때 사라져서 관리 기능을 닫아두었어요. 내 컴퓨터에서 npm start 로 열은 관리자 페이지에서 수정해 주세요.'
   : '관리자 비밀번호가 설정되지 않았어요.';
 
 // Vercel 같은 서버리스 환경에서는 포트를 열지 않고 핸들러만 넘겨준다.
@@ -332,9 +332,9 @@ function startServer() {
       console.log('저장소: Vercel Blob (재시작해도 내용이 유지돼요)');
     } else {
       console.log('저장소: backend/data/projects.json 파일');
-      if (process.env.RENDER) {
-        console.log('[경고] Render 무료 플랜은 디스크가 유지되지 않아요.');
-        console.log('       BLOB_READ_WRITE_TOKEN을 넣지 않으면 저장한 내용이 재시작 때 사라져요.');
+      if (isEphemeralHost()) {
+        console.log('[안내] 디스크가 유지되지 않는 환경이라 관리 기능을 닫았어요.');
+        console.log('       프로젝트는 내 컴퓨터의 관리자 페이지에서 수정하고 GitHub에 올리면 반영돼요.');
       }
     }
   });
