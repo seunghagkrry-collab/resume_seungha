@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { isReadOnly } = require('../runtime');
 
 const DATA_FILE = path.resolve(__dirname, 'projects.json');
 const TEMP_FILE = `${DATA_FILE}.tmp`;
@@ -114,6 +115,7 @@ function listPublished() {
 }
 
 function create(input) {
+  if (isReadOnly()) return { readOnly: true };
   const record = normalizeInput(input);
   const errors = validate(record);
   if (errors.length) return { errors };
@@ -133,6 +135,7 @@ function create(input) {
 }
 
 function update(id, input) {
+  if (isReadOnly()) return { readOnly: true };
   const projects = readFileSafely();
   const index = projects.findIndex((project) => project.id === id);
   if (index === -1) return { notFound: true };
@@ -152,6 +155,7 @@ function update(id, input) {
 }
 
 function remove(id) {
+  if (isReadOnly()) return { readOnly: true };
   const projects = readFileSafely();
   const next = projects.filter((project) => project.id !== id);
   if (next.length === projects.length) return { notFound: true };

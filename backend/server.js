@@ -6,6 +6,7 @@ const path = require('node:path');
 const { getPortfolioData } = require('./data/portfolioData');
 const projectStore = require('./data/projectStore');
 const adminAuth = require('./auth/adminAuth');
+const { isReadOnly } = require('./runtime');
 
 const PORT = Number(process.env.PORT) || 3000;
 const FRONTEND_ROOT = path.resolve(__dirname, '..', 'frontend');
@@ -126,6 +127,11 @@ async function handleLogin(request, response) {
     return;
   }
 
+  if (!ADMIN_AVAILABLE) {
+    sendJson(response, 503, { error: ADMIN_UNAVAILABLE_MESSAGE });
+    return;
+  }
+
   const clientKey = request.socket.remoteAddress || 'unknown';
   const result = await adminAuth.login(body.password, clientKey);
 
@@ -178,6 +184,10 @@ async function handleAdminProjects(request, response, requestUrl) {
 
   if (request.method === 'DELETE' && id) {
     const result = projectStore.remove(id);
+    if (result.readOnly) {
+      sendJson(response, 503, { error: ADMIN_UNAVAILABLE_MESSAGE });
+      return;
+    }
     if (result.notFound) {
       sendJson(response, 404, { error: '프로젝트를 찾을 수 없어요.' });
       return;
@@ -200,6 +210,10 @@ async function handleAdminProjects(request, response, requestUrl) {
     const result =
       request.method === 'POST' ? projectStore.create(body) : projectStore.update(id, body);
 
+    if (result.readOnly) {
+      sendJson(response, 503, { error: ADMIN_UNAVAILABLE_MESSAGE });
+      return;
+    }
     if (result.notFound) {
       sendJson(response, 404, { error: '프로젝트를 찾을 수 없어요.' });
       return;
@@ -220,7 +234,7 @@ async function handleAdminProjects(request, response, requestUrl) {
    라우팅
    ========================================================================== */
 
-const server = http.createServer((request, response) => {
+function requestHandler(request, response) {
   const requestUrl = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
   const pathname = requestUrl.pathname;
 
@@ -235,7 +249,11 @@ const server = http.createServer((request, response) => {
   }
 
   if (pathname === '/api/admin/session' && request.method === 'GET') {
-    sendJson(response, 200, { authenticated: isAuthenticated(request) });
+    sendJson(response, 200, {
+      authenticated: isAuthenticated(request),
+      adminAvailable: ADMIN_AVAILABLE,
+      reason: ADMIN_AVAILABLE ? '' : ADMIN_UNAVAILABLE_MESSAGE,
+    });
     return;
   }
 
@@ -270,23 +288,42 @@ const server = http.createServer((request, response) => {
   }
 
   serveFrontend(response, pathname);
-});
+}
 
 const credentialInfo = adminAuth.init();
 
-server.listen(PORT, () => {
-  console.log(`Portfolio server is running at http://localhost:${PORT}`);
-  console.log(`Admin page: http://localhost:${PORT}/admin`);
+// 읽기 전용 환경에서는 저장이 사라지므로 관리 기능을 아예 닫고 이유를 알려준다.
+const ADMIN_AVAILABLE = !isReadOnly() && adminAuth.hasCredential();
+const ADMIN_UNAVAILABLE_MESSAGE = isReadOnly()
+  ? '이 주소는 읽기 전용으로 배포돼 있어서 프로젝트를 저장할 수 없어요. 내 컴퓨터에서 실행한 관리자 페이지를 이용해 주세요.'
+  : '관리자 비밀번호가 설정되지 않았어요.';
 
-  if (credentialInfo.source === 'generated') {
-    console.log('');
-    console.log('============================================================');
-    console.log('관리자 비밀번호가 새로 만들어졌어요. 이 값을 저장해 두세요.');
-    console.log(`  비밀번호: ${credentialInfo.password}`);
-    console.log('바꾸려면: npm.cmd run set-password -- 새비밀번호');
-    console.log('============================================================');
-    console.log('');
-  } else if (credentialInfo.source === 'env') {
-    console.log('관리자 비밀번호: 환경변수 ADMIN_PASSWORD 사용 중');
-  }
-});
+// Vercel 같은 서버리스 환경에서는 포트를 열지 않고 핸들러만 넘겨준다.
+function startServer() {
+  const server = http.createServer(requestHandler);
+
+  server.listen(PORT, () => {
+    console.log(`Portfolio server is running at http://localhost:${PORT}`);
+    console.log(`Admin page: http://localhost:${PORT}/admin`);
+
+    if (credentialInfo.source === 'generated') {
+      console.log('');
+      console.log('============================================================');
+      console.log('관리자 비밀번호가 새로 만들어졌어요. 이 값을 저장해 두세요.');
+      console.log(`  비밀번호: ${credentialInfo.password}`);
+      console.log('바꾸려면: npm.cmd run set-password -- 새비밀번호');
+      console.log('============================================================');
+      console.log('');
+    } else if (credentialInfo.source === 'env') {
+      console.log('관리자 비밀번호: 환경변수 ADMIN_PASSWORD 사용 중');
+    }
+  });
+
+  return server;
+}
+
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = { requestHandler, startServer };

@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { isReadOnly } = require('../runtime');
 
 const CREDENTIAL_FILE = path.resolve(__dirname, '..', 'data', 'admin.local.json');
 // 마지막 사용 시점부터 30분이 지나면 서버 쪽 세션을 버린다.
@@ -80,11 +81,22 @@ function init() {
     return { source: 'file' };
   }
 
+  // 서버리스에서는 자격 증명 파일을 만들 수 없고, 인스턴스마다 다른 비밀번호가
+  // 생겨 로그인이 불가능해진다. 무작위로 만드는 대신 관리자 기능을 닫는다.
+  if (isReadOnly()) {
+    credential = null;
+    return { source: 'unavailable' };
+  }
+
   // 처음 만든 비밀번호는 콘솔에 한 번 보여주기 위해서만 반환하고 모듈에 보관하지 않는다.
   const firstPassword = crypto.randomBytes(6).toString('base64url');
   credential = buildCredential(firstPassword);
   writeCredentialFile(credential);
   return { source: 'generated', password: firstPassword };
+}
+
+function hasCredential() {
+  return Boolean(credential);
 }
 
 function setPassword(password) {
@@ -176,6 +188,7 @@ async function login(password, clientKey) {
 
 module.exports = {
   init,
+  hasCredential,
   setPassword,
   login,
   isValidSession,

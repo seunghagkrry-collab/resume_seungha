@@ -137,6 +137,26 @@ The admin session is deliberately short-lived:
   blocks the event loop for ~0.2s per attempt, which stalls the whole site when login
   attempts pile up. Keep `scryptSync` only for startup and the CLI password setter.
 
+## Vercel deployment
+
+`vercel.json` rewrites every path to `api/index.js`, which reuses the same
+`requestHandler` that `backend/server.js` serves locally. There is no build step and
+no dependencies, so a push to `main` is enough to redeploy.
+
+Vercel's filesystem is read-only and each request may hit a different instance, so
+writes would vanish and in-memory sessions would not be shared. `backend/runtime.js`
+detects this (`process.env.VERCEL`) and the app responds accordingly:
+
+- The public site works fully; `/api/portfolio` reads the committed `projects.json`.
+- `projectStore.create/update/remove` return `{ readOnly: true }` and the API answers 503.
+- `adminAuth.init()` refuses to generate a password it cannot persist.
+- `/api/admin/session` reports `adminAvailable: false` with a reason, and the admin
+  page disables its login form instead of failing silently.
+
+So projects are edited with the local admin page, then `projects.json` is committed
+and pushed. Making the deployed admin page writable needs external storage
+(Vercel KV/Postgres, Supabase) or a host with a persistent disk (Render, Railway).
+
 ## Deployment caveats
 
 - The lockout is keyed on `request.socket.remoteAddress`. Behind a reverse proxy every

@@ -587,6 +587,14 @@
 
   /* ---------- 시작 ---------- */
 
+  // 읽기 전용으로 배포된 주소에서는 저장이 되지 않으므로 미리 알려준다.
+  function lockOutAdmin(reason) {
+    setAlert(loginAlert, reason);
+    passwordInput.disabled = true;
+    loginBtn.disabled = true;
+    loginBtn.textContent = '이 주소에서는 사용할 수 없어요';
+  }
+
   (async function start() {
     try {
       const result = await api('/api/admin/session');
@@ -594,6 +602,11 @@
         showAdmin();
         return;
       }
+      showLogin();
+      if (result.data.adminAvailable === false) {
+        lockOutAdmin(result.data.reason || '이 주소에서는 관리자 기능을 쓸 수 없어요.');
+      }
+      return;
     } catch (error) {
       // 연결 실패 시에도 로그인 화면을 보여준다.
     }
