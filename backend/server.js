@@ -7,7 +7,7 @@ const { getPortfolioData } = require('./data/portfolioData');
 const projectStore = require('./data/projectStore');
 const adminAuth = require('./auth/adminAuth');
 const storage = require('./data/storage');
-const { isEphemeralHost, isWritable } = require('./runtime');
+const { isEphemeralHost, isWritable, hasMalformedBlobToken } = require('./runtime');
 
 const PORT = Number(process.env.PORT) || 3000;
 const FRONTEND_ROOT = path.resolve(__dirname, '..', 'frontend');
@@ -326,6 +326,11 @@ function startServer() {
       console.log('관리자 비밀번호: 환경변수 ADMIN_PASSWORD 사용 중');
     } else if (credentialInfo.source === 'unavailable') {
       console.log('[경고] ADMIN_PASSWORD가 없어서 관리자 로그인을 닫았어요.');
+    }
+
+    if (hasMalformedBlobToken()) {
+      console.log('[경고] BLOB_READ_WRITE_TOKEN 값이 토큰 모양이 아니어서 무시했어요.');
+      console.log('       실제 토큰은 vercel_blob_rw_ 로 시작합니다. 안 쓰실 거라면 변수를 지우셔도 됩니다.');
     }
 
     if (storage.usesBlob()) {

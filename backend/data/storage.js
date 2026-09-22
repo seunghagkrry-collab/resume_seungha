@@ -7,15 +7,11 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { blobToken } = require('../runtime');
 
 const DATA_FILE = path.resolve(__dirname, 'projects.json');
 const TEMP_FILE = `${DATA_FILE}.tmp`;
 const BLOB_PATH = 'portfolio/projects.json';
-
-// 토큰이 비어 있거나 공백만 있으면 없는 것으로 본다.
-function blobToken() {
-  return (process.env.BLOB_READ_WRITE_TOKEN || '').trim();
-}
 
 function usesBlob() {
   return blobToken().length > 0;
