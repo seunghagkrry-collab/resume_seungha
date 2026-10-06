@@ -75,6 +75,12 @@
         </div>
       </div>
       <div class="admin-top-right">
+        <!-- 관리자 화면끼리의 이동. data-admin-nav가 붙어 있으면 떠날 때
+             로그아웃 비콘을 보내지 않는다(admin.js 참고). -->
+        <nav class="admin-tabs">
+          <span class="admin-tab is-current" aria-current="page">🗂️ 프로젝트 관리</span>
+          <a class="admin-tab" href="admin-reservations.html" data-admin-nav>📅 예약하기 관리</a>
+        </nav>
         <a class="btn btn-ghost" href="/" target="_blank" rel="noopener noreferrer">사이트 보기</a>
         <button type="button" class="btn btn-ghost" id="logout-btn">로그아웃</button>
       </div>

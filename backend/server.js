@@ -323,21 +323,61 @@ async function handleCreateReservation(request, response) {
   }
 }
 
-async function handleAdminReservations(request, response) {
+async function handleAdminReservations(request, response, requestUrl) {
   if (!isAuthenticated(request)) {
     sendJson(response, 401, { error: '로그인이 필요해요.' });
     return;
   }
-  if (request.method !== 'GET') {
-    sendJson(response, 405, { error: 'Method not allowed' });
+
+  // /api/admin/reservations/:id
+  const segments = requestUrl.pathname.split('/').filter(Boolean);
+  const id = segments[3] || '';
+
+  if (request.method === 'GET' && !id) {
+    try {
+      sendJson(response, 200, {
+        reservations: await reservationStore.listReservations(),
+        statusLabels: reservationStore.STATUS_LABELS,
+      });
+    } catch (error) {
+      sendJson(response, 503, { error: '예약 목록을 읽지 못했어요.' });
+    }
     return;
   }
 
-  try {
-    sendJson(response, 200, { reservations: await reservationStore.listReservations() });
-  } catch (error) {
-    sendJson(response, 503, { error: '예약 목록을 읽지 못했어요.' });
+  if (request.method === 'PATCH' && id) {
+    if (!isWritable()) {
+      sendJson(response, 503, { error: ADMIN_UNAVAILABLE_MESSAGE });
+      return;
+    }
+
+    let body;
+    try {
+      body = await readJsonBody(request);
+    } catch (error) {
+      sendJson(response, 400, { error: '요청을 읽을 수 없어요.' });
+      return;
+    }
+
+    try {
+      const result = await reservationStore.updateStatus(id, body && body.status);
+      if (result.badStatus) {
+        sendJson(response, 400, { error: '알 수 없는 처리 상태예요.' });
+        return;
+      }
+      if (result.notFound) {
+        sendJson(response, 404, { error: '예약을 찾을 수 없어요.' });
+        return;
+      }
+      sendJson(response, 200, { reservation: result.record });
+    } catch (error) {
+      console.error('[예약] 상태 변경 실패:', error.message || error);
+      sendJson(response, 503, { error: '처리 상태를 저장하지 못했어요.' });
+    }
+    return;
   }
+
+  sendJson(response, 405, { error: 'Method not allowed' });
 }
 
 /* ==========================================================================
@@ -372,8 +412,8 @@ function requestHandler(request, response) {
     return;
   }
 
-  if (pathname === '/api/admin/reservations') {
-    handleAdminReservations(request, response);
+  if (pathname === '/api/admin/reservations' || pathname.startsWith('/api/admin/reservations/')) {
+    handleAdminReservations(request, response, requestUrl);
     return;
   }
 
@@ -421,6 +461,13 @@ function requestHandler(request, response) {
 
   if (pathname === '/admin' || pathname === '/admin/') {
     serveFrontend(response, '/admin.html');
+    return;
+  }
+
+  // 한 단계 깊은 /admin/reservations로 두면 페이지의 상대경로 자산이
+  // /admin/admin.css로 풀려 전부 404가 된다. /admin과 같은 깊이로 맞춘다.
+  if (pathname === '/admin-reservations' || pathname === '/admin-reservations/') {
+    serveFrontend(response, '/admin-reservations.html');
     return;
   }
 

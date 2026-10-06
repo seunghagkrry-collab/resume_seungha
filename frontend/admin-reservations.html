@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>예약하기 관리</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin-reservations.css">
+</head>
+<body>
+
+  <!-- 스크립트가 실행되지 않으면 화면이 조용히 멈춘다. 그 상태를 눈에 보이게 알린다. -->
+  <div class="boot-alert" id="boot-alert" hidden>
+    <strong>화면 기능을 불러오지 못했어요.</strong>
+    <span id="boot-detail"></span>
+    <span class="boot-help">브라우저 주소가 <code>http://localhost:3000/admin-reservations</code> 인지 확인하고, Ctrl+F5로 새로고침해 주세요.</span>
+  </div>
+
+  <script>
+    window.__adminBooted = false;
+
+    function showBootAlert(detail) {
+      var box = document.getElementById('boot-alert');
+      var text = document.getElementById('boot-detail');
+      if (!box) return;
+      if (text && detail) text.textContent = detail;
+      box.hidden = false;
+    }
+
+    window.addEventListener('error', function (event) {
+      showBootAlert('오류: ' + (event.message || '알 수 없는 오류'));
+    });
+
+    window.addEventListener('load', function () {
+      if (!window.__adminBooted) {
+        showBootAlert('admin-reservations.js가 실행되지 않았어요.');
+      }
+    });
+  </script>
+
+  <!-- 로그인 화면 -->
+  <section class="login-screen" id="login-view">
+    <form class="login-card" id="login-form" autocomplete="off" onsubmit="return false;">
+      <span class="login-emoji">🔒</span>
+      <h1 class="login-title">예약하기 관리</h1>
+      <p class="login-desc">비밀번호를 입력하면 방문 예약을 관리할 수 있어요.</p>
+
+      <label class="field-label" for="password-input">비밀번호</label>
+      <input
+        class="text-input"
+        type="password"
+        id="password-input"
+        placeholder="관리자 비밀번호를 입력하세요"
+        autocomplete="off"
+        required
+      >
+
+      <p class="form-alert" id="login-alert" role="alert" hidden></p>
+
+      <button type="submit" class="btn btn-primary btn-block" id="login-btn">로그인</button>
+      <a class="login-back" href="/">← 포트폴리오 사이트로 돌아가기</a>
+    </form>
+  </section>
+
+  <!-- 관리 화면 -->
+  <div class="admin-screen" id="admin-view" hidden>
+
+    <header class="admin-top">
+      <div class="admin-top-left">
+        <span class="admin-emoji">📅</span>
+        <div>
+          <h1 class="admin-title">예약하기 관리</h1>
+          <p class="admin-sub">방문 예약 신청을 확인하고 처리 상태를 바꿀 수 있어요.</p>
+        </div>
+      </div>
+      <div class="admin-top-right">
+        <nav class="admin-tabs">
+          <a class="admin-tab" href="admin.html" data-admin-nav>🗂️ 프로젝트 관리</a>
+          <span class="admin-tab is-current" aria-current="page">📅 예약하기 관리</span>
+        </nav>
+        <button type="button" class="btn btn-ghost" id="reload-btn">새로고침</button>
+        <button type="button" class="btn btn-ghost" id="logout-btn">로그아웃</button>
+      </div>
+    </header>
+
+    <main class="admin-body rsvadm-body">
+
+      <section class="rsvadm-panel">
+        <div class="rsvadm-head">
+          <h2 class="panel-title">예약 목록</h2>
+          <p class="rsvadm-showing" id="rsvadm-showing" aria-live="polite">불러오는 중…</p>
+        </div>
+
+        <!-- 요약 문장: 전체 N건 · 접수 N건 · 확정 N건 … -->
+        <p class="rsvadm-summary" id="rsvadm-summary" aria-live="polite"></p>
+
+        <!-- 처리 상태 필터. 누른 상태만 표에 남는다. -->
+        <div class="rsvadm-filters" id="rsvadm-filters" role="group" aria-label="처리 상태로 걸러보기"></div>
+
+        <p class="form-alert" id="rsvadm-alert" role="alert" hidden></p>
+        <p class="form-ok" id="rsvadm-ok" hidden></p>
+
+        <div class="rsvadm-table-scroll">
+          <table class="rsvadm-table">
+            <thead>
+              <tr>
+                <th scope="col" class="col-code">예약번호</th>
+                <th scope="col" class="col-who">신청자 / 이메일</th>
+                <th scope="col" class="col-when">방문 희망 시간</th>
+                <th scope="col" class="col-purpose">방문 목적</th>
+                <th scope="col" class="col-status">처리 상태</th>
+                <th scope="col" class="col-manage">관리</th>
+              </tr>
+            </thead>
+            <tbody id="rsvadm-rows"></tbody>
+          </table>
+        </div>
+
+        <p class="rsvadm-empty" id="rsvadm-empty" hidden>
+          <span class="rsvadm-empty-emoji">📭</span>
+          <span id="rsvadm-empty-text">아직 들어온 예약이 없어요.</span>
+        </p>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="admin-reservations.js"></script>
+</body>
+</html>

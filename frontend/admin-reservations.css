@@ -1,0 +1,470 @@
+/* ==========================================================================
+   예약하기 관리 화면
+   admin.css의 색·반경 토큰을 그대로 쓴다. 탭(.admin-tabs)은 프로젝트
+   관리 화면도 쓰므로 admin.css에 있고, 이 파일은 예약 표 전용이다.
+   ========================================================================== */
+
+:root {
+  --rsvadm-received: #0369a1;
+  --rsvadm-received-bg: #e0f2fe;
+  --rsvadm-received-border: #bae6fd;
+
+  --rsvadm-confirmed: #2e6244;
+  --rsvadm-confirmed-bg: #eaf4ed;
+  --rsvadm-confirmed-border: #cde6d4;
+
+  --rsvadm-change: #b45309;
+  --rsvadm-change-bg: #fef3c7;
+  --rsvadm-change-border: #fde68a;
+
+  --rsvadm-cancel: #be123c;
+  --rsvadm-cancel-bg: #ffe4e6;
+  --rsvadm-cancel-border: #fecdd3;
+}
+
+/* ==========================================================================
+   본문 - 프로젝트 화면과 달리 한 덩어리다
+   ========================================================================== */
+.rsvadm-body {
+  display: block;
+}
+
+.rsvadm-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 20px 22px 22px;
+}
+
+.rsvadm-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 14px;
+}
+
+/* 지금 무엇을 보고 있는지 (제목 옆) */
+.rsvadm-showing {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   요약 문장
+   전체 N건 · 접수 N건 · 확정 N건 · 변경 요청 N건 · 취소 N건
+   ========================================================================== */
+.rsvadm-summary {
+  margin-bottom: 14px;
+  padding: 11px 15px;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+.rsvadm-summary:empty {
+  display: none;
+}
+
+/* ==========================================================================
+   처리 상태 필터
+   누른 상태만 표에 남는다.
+   ========================================================================== */
+.rsvadm-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rsvadm-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  border: 1px solid var(--border-card);
+  background: var(--bg-card-sub);
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rsvadm-filter strong {
+  font-weight: 700;
+}
+
+.rsvadm-filter-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.rsvadm-filter:hover {
+  transform: translateY(-1px);
+}
+
+/* 꺼져 있을 때도 어느 상태인지 알아볼 수 있게 옅은 색을 둔다. */
+.rsvadm-filter.status-received {
+  background: var(--rsvadm-received-bg);
+  border-color: var(--rsvadm-received-border);
+  color: var(--rsvadm-received);
+}
+
+.rsvadm-filter.status-confirmed {
+  background: var(--rsvadm-confirmed-bg);
+  border-color: var(--rsvadm-confirmed-border);
+  color: var(--rsvadm-confirmed);
+}
+
+.rsvadm-filter.status-change_requested {
+  background: var(--rsvadm-change-bg);
+  border-color: var(--rsvadm-change-border);
+  color: var(--rsvadm-change);
+}
+
+.rsvadm-filter.status-cancelled {
+  background: var(--rsvadm-cancel-bg);
+  border-color: var(--rsvadm-cancel-border);
+  color: var(--rsvadm-cancel);
+}
+
+/* 고른 필터는 채워서 보여준다. */
+.rsvadm-filter.is-active {
+  color: #ffffff;
+  transform: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.rsvadm-filter.is-active.status-all {
+  background: var(--text-main);
+  border-color: var(--text-main);
+}
+
+.rsvadm-filter.is-active.status-received {
+  background: var(--rsvadm-received);
+  border-color: var(--rsvadm-received);
+}
+
+.rsvadm-filter.is-active.status-confirmed {
+  background: var(--rsvadm-confirmed);
+  border-color: var(--rsvadm-confirmed);
+}
+
+.rsvadm-filter.is-active.status-change_requested {
+  background: var(--rsvadm-change);
+  border-color: var(--rsvadm-change);
+}
+
+.rsvadm-filter.is-active.status-cancelled {
+  background: var(--rsvadm-cancel);
+  border-color: var(--rsvadm-cancel);
+}
+
+/* ==========================================================================
+   표
+   ========================================================================== */
+/* 좁은 화면에서 표가 찌그러지는 대신 옆으로 밀려 읽히게 한다. */
+.rsvadm-table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.rsvadm-table {
+  width: 100%;
+  min-width: 940px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.rsvadm-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-card-sub);
+  border-bottom: 1px solid var(--border-card);
+  padding: 11px 12px;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.rsvadm-table tbody td {
+  border-bottom: 1px solid var(--border-soft);
+  padding: 12px;
+  vertical-align: top;
+}
+
+.rsvadm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rsvadm-table tbody tr:hover {
+  background: #fcfbf8;
+}
+
+/* 취소된 예약은 한눈에 빠지게 흐려 둔다. */
+.rsvadm-table tbody tr.is-cancelled {
+  opacity: 0.55;
+}
+
+.col-code { width: 160px; }
+.col-who { width: 190px; }
+.col-when { width: 130px; }
+.col-purpose { min-width: 220px; }
+.col-status { width: 92px; }
+.col-manage { width: 240px; }
+
+/* 예약번호 */
+.rsvadm-seq {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.rsvadm-code {
+  display: block;
+  font-family: 'Consolas', 'Menlo', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+  word-break: break-all;
+}
+
+/* 신청자 */
+.rsvadm-name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.rsvadm-email {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--rsvadm-received);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+
+.rsvadm-created {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* 방문 희망 시간 */
+.rsvadm-date {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.rsvadm-time {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 2px 9px;
+  background: var(--primary-green-light);
+  border: 1px solid var(--primary-green-border);
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--primary-green);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 방문 목적 */
+.rsvadm-purpose {
+  font-size: 0.83rem;
+  line-height: 1.65;
+  color: var(--text-sub);
+  white-space: pre-wrap; /* 신청자가 넣은 줄바꿈을 살린다. */
+  word-break: keep-all;
+  /* 긴 글이 표를 늘려 다른 줄을 읽기 어렵게 만들지 않도록 다섯 줄까지만. */
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   처리 상태 배지
+   ========================================================================== */
+.rsvadm-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.rsvadm-badge.status-received {
+  background: var(--rsvadm-received-bg);
+  border-color: var(--rsvadm-received-border);
+  color: var(--rsvadm-received);
+}
+
+.rsvadm-badge.status-confirmed {
+  background: var(--rsvadm-confirmed-bg);
+  border-color: var(--rsvadm-confirmed-border);
+  color: var(--rsvadm-confirmed);
+}
+
+.rsvadm-badge.status-change_requested {
+  background: var(--rsvadm-change-bg);
+  border-color: var(--rsvadm-change-border);
+  color: var(--rsvadm-change);
+}
+
+.rsvadm-badge.status-cancelled {
+  background: var(--rsvadm-cancel-bg);
+  border-color: var(--rsvadm-cancel-border);
+  color: var(--rsvadm-cancel);
+}
+
+/* ==========================================================================
+   관리 - 네 가지 상태 버튼
+   ========================================================================== */
+.rsvadm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.rsvadm-action {
+  padding: 7px 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.rsvadm-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.rsvadm-action.status-received:hover:not(:disabled) {
+  background: var(--rsvadm-received-bg);
+  border-color: var(--rsvadm-received-border);
+  color: var(--rsvadm-received);
+}
+
+.rsvadm-action.status-confirmed:hover:not(:disabled) {
+  background: var(--rsvadm-confirmed-bg);
+  border-color: var(--rsvadm-confirmed-border);
+  color: var(--rsvadm-confirmed);
+}
+
+.rsvadm-action.status-change_requested:hover:not(:disabled) {
+  background: var(--rsvadm-change-bg);
+  border-color: var(--rsvadm-change-border);
+  color: var(--rsvadm-change);
+}
+
+.rsvadm-action.status-cancelled:hover:not(:disabled) {
+  background: var(--rsvadm-cancel-bg);
+  border-color: var(--rsvadm-cancel-border);
+  color: var(--rsvadm-cancel);
+}
+
+/* 지금 상태인 버튼은 채워서 보여주고 누를 수 없게 한다. */
+.rsvadm-action.is-active {
+  cursor: default;
+  color: #ffffff;
+  transform: none;
+}
+
+.rsvadm-action.is-active.status-received {
+  background: var(--rsvadm-received);
+  border-color: var(--rsvadm-received);
+}
+
+.rsvadm-action.is-active.status-confirmed {
+  background: var(--rsvadm-confirmed);
+  border-color: var(--rsvadm-confirmed);
+}
+
+.rsvadm-action.is-active.status-change_requested {
+  background: var(--rsvadm-change);
+  border-color: var(--rsvadm-change);
+}
+
+.rsvadm-action.is-active.status-cancelled {
+  background: var(--rsvadm-cancel);
+  border-color: var(--rsvadm-cancel);
+}
+
+/* 저장 중에는 전체가 잠긴다. */
+.rsvadm-action:disabled:not(.is-active) {
+  opacity: 0.45;
+  cursor: progress;
+}
+
+/* ==========================================================================
+   비어 있을 때
+   ========================================================================== */
+.rsvadm-empty {
+  padding: 44px 20px;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.rsvadm-empty[hidden] {
+  display: none;
+}
+
+.rsvadm-empty-emoji {
+  display: block;
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+/* ==========================================================================
+   반응형
+   ========================================================================== */
+@media (max-width: 720px) {
+  .rsvadm-panel {
+    padding: 16px 14px 18px;
+  }
+}
