@@ -105,6 +105,7 @@
             <p class="rsv-cal-legend">
               <span class="legend-item"><i class="dot dot-open"></i> 예약 가능</span>
               <span class="legend-item"><i class="dot dot-holiday"></i> 주말 · 공휴일</span>
+              <span class="legend-item"><i class="dot dot-full"></i> 예약 마감</span>
               <span class="legend-item"><i class="dot dot-picked"></i> 선택</span>
             </p>
           </div>
@@ -131,7 +132,11 @@
               <i class="ri-arrow-down-s-line rsv-select-caret" aria-hidden="true"></i>
             </div>
             <p class="rsv-field-error" id="rsv-time-error" hidden></p>
-            <p class="rsv-field-help">13:00부터 18:00까지 30분 단위로 고를 수 있어요.</p>
+            <p class="rsv-field-help">
+              13:00부터 18:00까지 30분 단위로 고를 수 있어요.
+              <strong>(완료)</strong>로 표시된 시간은 이미 예약이 찬 시간이에요.
+            </p>
+            <p class="rsv-slot-note" id="rsv-slot-note" hidden></p>
           </div>
         </div>
 

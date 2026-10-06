@@ -65,6 +65,9 @@ Public (GET only):
 - `GET /api/health` returns `{ "status": "ok" }`
 - `GET /api/portfolio` returns published projects only
 - `GET /api/categories` returns the allowed category list
+- `GET /api/reservation-options` returns time slots, holidays and limits
+- `GET /api/reservations/taken` returns booked dates/times only (no personal data)
+- `POST /api/reservations` creates a reservation; 409 when the slot is taken
 
 Admin (requires the `admin_session` cookie):
 
@@ -185,8 +188,40 @@ one level deeper makes the page's relative `admin.css` resolve to
   read for older records.
 - A status change always re-renders from the record the server returned. Patching
   only the DOM would let the screen drift from what is stored.
-- **Not yet built:** nothing stops two people booking the same slot. The table is
-  where that will surface when it is added.
+### No double booking
+
+One slot (date + time) holds at most one reservation.
+
+- A reservation **holds** its slot in every status except 취소. 변경 요청 still
+  holds it — it means the admin wants a different time, not that the slot is free.
+  Cancelling frees the slot immediately.
+- `GET /api/reservations/taken` is public and returns **only** dates and times
+  (`{ "2026-10-07": ["13:00","14:30"] }`). Names and emails stay behind the admin
+  session; this endpoint must never grow a field that identifies anyone.
+- `reserve.js` fetches it once on load. Taken times render as `13:00 (완료)` and
+  `disabled`; the remaining times are unchanged. A date whose every slot is taken
+  is disabled in the calendar as 예약 마감 — otherwise picking it leads to a
+  dropdown with nothing selectable.
+- The browser check is for feedback only. `addReservation` re-checks against
+  current storage immediately before writing, and answers **409** with
+  `taken: true` when the slot has gone.
+- Reservation writes are serialized through a promise chain (`runExclusively`).
+  Without it, two requests can both read "free" and both write — the read-modify-write
+  gap exists for the file store and for Blob alike. Verified: 10 simultaneous
+  requests for one slot produce 1 success and 9 conflicts.
+- `updateStatus` also refuses to revive a cancelled reservation when something
+  else has taken its slot in the meantime, answering 409 with the clashing code.
+- **The confirm step calls the server before Formspree.** The server is the only
+  thing that can detect a clash, so emailing first would send a reservation for a
+  slot that is already gone. On 409 the modal closes, the time is cleared, the
+  availability is refetched and the error lands under the time field — no email.
+  If the server cannot be reached or cannot persist, the booking still goes
+  through by email and the done panel says the clash could not be checked.
+
+**On the deployed site this feature is inert.** Render's free plan is not
+writable, so nothing is stored, `taken` is always empty, and no slot ever shows
+(완료). Duplicate prevention works locally and will work deployed as soon as
+`BLOB_READ_WRITE_TOKEN` is set.
 
 Navigating between the two admin pages would normally log you out — `pagehide`
 fires a `sendBeacon` logout by design. Links carrying `data-admin-nav` set a flag

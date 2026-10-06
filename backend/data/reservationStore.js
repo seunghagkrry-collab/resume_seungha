@@ -267,23 +267,83 @@ async function listReservations() {
     .reverse();
 }
 
+/* ==========================================================================
+   같은 시간대 중복 예약 막기
+   ========================================================================== */
+
+// 취소된 예약은 그 자리를 비워준다. 접수·확정·변경 요청은 아직 잡고 있는 것으로 본다.
+// (변경 요청은 운영자가 다른 시간을 원한다는 뜻이지, 이 자리를 놓은 것은 아니다)
+function holdsSlot(record) {
+  return normalizeStatus(record.status) !== 'cancelled';
+}
+
+function isSameSlot(record, visitDate, visitTime) {
+  return record.visitDate === visitDate && record.visitTime === visitTime;
+}
+
+// { 'YYYY-MM-DD': ['13:00', '14:30'], ... }
+// 날짜와 시간만 담는다. 누가 예약했는지는 공개 API로 나가면 안 된다.
+async function takenSlots() {
+  const reservations = await storage.readReservations();
+  const taken = {};
+
+  reservations.filter(holdsSlot).forEach((record) => {
+    const date = record.visitDate;
+    const time = record.visitTime;
+    if (!date || !time) return;
+    if (!taken[date]) taken[date] = [];
+    if (!taken[date].includes(time)) taken[date].push(time);
+  });
+
+  Object.keys(taken).forEach((date) => taken[date].sort());
+  return taken;
+}
+
+// 예약 쓰기를 한 줄로 세운다.
+// 읽고-고치고-쓰는 사이에 다른 요청이 끼어들면, 둘 다 "비었다"고 보고
+// 같은 시간에 두 건이 들어간다. 파일이든 Blob이든 이 틈은 똑같이 있다.
+let writeChain = Promise.resolve();
+
+function runExclusively(task) {
+  // 앞선 작업이 실패해도 줄이 끊기지 않게 catch로 받아 둔다.
+  const result = writeChain.then(task, task);
+  writeChain = result.then(() => undefined, () => undefined);
+  return result;
+}
+
 async function addReservation(input) {
   const checked = validate(input);
   if (!checked.ok) return { ok: false, errors: checked.errors };
 
-  const record = {
-    id: makeId(),
-    status: DEFAULT_STATUS,
-    ...checked.value,
-    createdAt: new Date().toISOString(),
-  };
-  record.code = reservationCode(record);
+  return runExclusively(async () => {
+    const reservations = await storage.readReservations();
 
-  const reservations = await storage.readReservations();
-  reservations.push(record);
-  await storage.writeReservations(reservations);
+    // 저장 직전에 한 번 더 본다. 브라우저가 (완료)로 막아주더라도
+    // 요청을 직접 보내거나, 고르는 동안 남이 먼저 넣었을 수 있다.
+    const clash = reservations.find(
+      (record) => holdsSlot(record) && isSameSlot(record, checked.value.visitDate, checked.value.visitTime),
+    );
+    if (clash) {
+      return {
+        ok: false,
+        taken: true,
+        errors: { visitTime: '방금 다른 분이 먼저 예약한 시간이에요. 다른 시간을 골라주세요.' },
+      };
+    }
 
-  return { ok: true, record: decorate(record) };
+    const record = {
+      id: makeId(),
+      status: DEFAULT_STATUS,
+      ...checked.value,
+      createdAt: new Date().toISOString(),
+    };
+    record.code = reservationCode(record);
+
+    reservations.push(record);
+    await storage.writeReservations(reservations);
+
+    return { ok: true, record: decorate(record) };
+  });
 }
 
 async function updateStatus(id, status) {
@@ -291,17 +351,33 @@ async function updateStatus(id, status) {
     return { ok: false, badStatus: true };
   }
 
-  const reservations = await storage.readReservations();
-  const found = reservations.find((record) => record.id === id);
-  if (!found) return { ok: false, notFound: true };
+  return runExclusively(async () => {
+    const reservations = await storage.readReservations();
+    const found = reservations.find((record) => record.id === id);
+    if (!found) return { ok: false, notFound: true };
 
-  found.status = status;
-  found.updatedAt = new Date().toISOString();
-  // 예전 기록에는 번호가 없다. 손대는 김에 함께 채워 둔다.
-  if (!found.code) found.code = reservationCode(found);
+    const wasHolding = holdsSlot(found);
+    const willHold = status !== 'cancelled';
 
-  await storage.writeReservations(reservations);
-  return { ok: true, record: decorate(found) };
+    // 취소해 둔 예약을 되살리는 동안 그 시간을 다른 사람이 가져갔을 수 있다.
+    // 그대로 살리면 같은 시간에 두 건이 된다.
+    if (!wasHolding && willHold) {
+      const clash = reservations.find(
+        (record) => record.id !== id && holdsSlot(record) && isSameSlot(record, found.visitDate, found.visitTime),
+      );
+      if (clash) {
+        return { ok: false, slotTaken: true, clashCode: clash.code || reservationCode(clash) };
+      }
+    }
+
+    found.status = status;
+    found.updatedAt = new Date().toISOString();
+    // 예전 기록에는 번호가 없다. 손대는 김에 함께 채워 둔다.
+    if (!found.code) found.code = reservationCode(found);
+
+    await storage.writeReservations(reservations);
+    return { ok: true, record: decorate(found) };
+  });
 }
 
 module.exports = {
@@ -316,5 +392,6 @@ module.exports = {
   listReservations,
   addReservation,
   updateStatus,
+  takenSlots,
   describeStorage: storage.describe,
 };

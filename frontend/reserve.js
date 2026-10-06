@@ -116,6 +116,19 @@ const FIRST_DATE = addDays(TODAY, 1);
 const LAST_DATE = addDays(TODAY, BOOKING_WINDOW_DAYS);
 
 // 고를 수 있는 날인지, 아니면 왜 못 고르는지.
+/* 이미 예약이 찬 시간대. { 'YYYY-MM-DD': ['13:00', ...] }
+   서버(GET /api/reservations/taken)에서 받아 채운다. 못 받으면 비어 있고,
+   그때도 예약은 막지 않는다. 겹침을 끝에서 잡는 쪽은 서버다. */
+let takenSlots = {};
+
+function takenAt(iso) {
+  return takenSlots[iso] || [];
+}
+
+function isFullyBooked(iso) {
+  return TIME_SLOTS.every((slot) => takenAt(iso).includes(slot));
+}
+
 function dateStatus(iso) {
   if (iso < FIRST_DATE) return { open: false, kind: 'past', note: '지난 날짜' };
   if (iso > LAST_DATE) return { open: false, kind: 'far', note: '예약 기간 밖' };
@@ -126,6 +139,9 @@ function dateStatus(iso) {
 
   const holiday = HOLIDAYS[iso];
   if (holiday) return { open: false, kind: 'holiday', note: holiday };
+
+  // 그 날의 모든 시간이 차면 골라도 고를 시간이 없다. 미리 막는다.
+  if (isFullyBooked(iso)) return { open: false, kind: 'full', note: '예약 마감' };
 
   return { open: true, kind: 'open', note: '예약 가능' };
 }
@@ -162,6 +178,7 @@ function showToast(message) {
     dateError: document.getElementById('rsv-date-error'),
     time: document.getElementById('rsv-time'),
     timeError: document.getElementById('rsv-time-error'),
+    slotNote: document.getElementById('rsv-slot-note'),
     name: document.getElementById('rsv-name'),
     nameError: document.getElementById('rsv-name-error'),
     email: document.getElementById('rsv-email'),
@@ -192,13 +209,39 @@ function showToast(message) {
   let viewYear = Number(FIRST_DATE.slice(0, 4));
   let viewMonth = Number(FIRST_DATE.slice(5, 7));
 
-  /* ---------------- 희망 시간 채우기 ---------------- */
-  TIME_SLOTS.forEach((slot) => {
-    const option = document.createElement('option');
-    option.value = slot;
-    option.textContent = slot;
-    el.time.appendChild(option);
-  });
+  /* ---------------- 희망 시간 채우기 ----------------
+     남은 시간은 그대로, 이미 찬 시간은 "13:00 (완료)"로 적고 고를 수 없게 한다.
+     날짜를 바꾸면 그 날짜 기준으로 다시 그린다. */
+  function renderTimeOptions() {
+    const keep = el.time.value;
+    const taken = selectedDate ? takenAt(selectedDate) : [];
+
+    el.time.replaceChildren();
+
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = selectedDate ? '시간을 선택해 주세요' : '날짜를 먼저 선택해 주세요';
+    el.time.appendChild(blank);
+
+    TIME_SLOTS.forEach((slot) => {
+      const option = document.createElement('option');
+      option.value = slot;
+
+      if (taken.includes(slot)) {
+        option.textContent = `${slot} (완료)`;
+        option.disabled = true;
+      } else {
+        option.textContent = slot;
+      }
+
+      el.time.appendChild(option);
+    });
+
+    // 고른 시간이 그새 차버렸으면 선택을 비운다.
+    el.time.value = keep && !taken.includes(keep) ? keep : '';
+  }
+
+  renderTimeOptions();
 
   /* ---------------- 캘린더 ---------------- */
   const firstMonthKey = FIRST_DATE.slice(0, 7);
@@ -267,6 +310,8 @@ function showToast(message) {
     touched.date = true;
     renderCalendar();
     renderPickedDate();
+    // 날짜마다 찬 시간이 다르다. 고른 날짜 기준으로 드롭박스를 다시 그린다.
+    renderTimeOptions();
     refresh();
   });
 
@@ -334,8 +379,15 @@ function showToast(message) {
       errors.visitDate = '선택할 수 없는 날짜예요. 평일을 다시 골라주세요.';
     }
 
-    if (!values.visitTime) errors.visitTime = '희망 시간을 선택해 주세요.';
-    else if (!TIME_SLOTS.includes(values.visitTime)) errors.visitTime = '예약할 수 없는 시간이에요.';
+    if (!values.visitTime) {
+      errors.visitTime = '희망 시간을 선택해 주세요.';
+    } else if (!TIME_SLOTS.includes(values.visitTime)) {
+      errors.visitTime = '예약할 수 없는 시간이에요.';
+    } else if (values.visitDate && takenAt(values.visitDate).includes(values.visitTime)) {
+      // 드롭박스에서 (완료)는 못 고르게 해 뒀지만, 날짜를 바꾸거나 현황이
+      // 늦게 도착하면 고른 값이 그새 찬 시간이 될 수 있다.
+      errors.visitTime = '이미 예약이 찬 시간이에요. 다른 시간을 골라주세요.';
+    }
 
     if (!values.consent) errors.consent = '정보 전달에 동의해 주셔야 예약을 받을 수 있어요.';
 
@@ -522,11 +574,30 @@ function showToast(message) {
 
     const values = pending;
     el.modalConfirm.disabled = true;
-    el.modalConfirm.innerHTML = '<i class="ri-loader-4-line"></i> 보내는 중…';
 
     // 어디로도 못 보내더라도 신청자가 적은 내용을 잃지 않도록 먼저 남긴다.
     saveLocally({ ...values, createdAt: new Date().toISOString() });
 
+    // 1) 먼저 서버에 자리를 잡는다.
+    //    메일을 먼저 보내면, 이미 찬 시간인데도 예약 메일이 나가버린다.
+    //    같은 시간을 두 사람이 동시에 고르는 경우를 끝에서 가려주는 곳은 서버뿐이다.
+    setConfirmLabel('<i class="ri-loader-4-line"></i> 시간 확인 중…');
+    const held = await holdSlotOnServer(values);
+
+    if (held.taken) {
+      // 팝업을 닫지 않는다. 시간만 바꿔 다시 보내면 되는 상황이다.
+      showModalError(held.message);
+      closeModal();
+      await loadTakenSlots();
+      el.time.value = '';
+      touched.time = true;
+      refresh();
+      setAlertOnTime(held.message);
+      return;
+    }
+
+    // 2) 자리를 잡았으면(또는 서버가 확인해줄 수 없으면) 메일을 보낸다.
+    setConfirmLabel('<i class="ri-loader-4-line"></i> 보내는 중…');
     const mailed = await sendToFormspree(values);
 
     // Formspree가 거절한 이유가 입력값이면 팝업을 닫지 않고 고치게 한다.
@@ -536,14 +607,25 @@ function showToast(message) {
       return;
     }
 
-    // 서버 기록은 보조 사본이다. Render 무료 플랜은 잠들어 있으면 깨어나는 데
-    // 30초가 넘게 걸리는데, 이것을 기다리면 메일이 이미 갔는데도 팝업이
-    // "보내는 중…"에 멈춰 있어 실패한 것처럼 보인다. 기다리지 않고 보낸다.
-    saveOnServer(values);
-
     closeModal();
-    showDone(values, mailed.ok, mailed.ok ? '' : mailed.message);
+    showDone(values, mailed.ok, [mailed.ok ? '' : mailed.message, held.note].filter(Boolean).join(' '));
+
+    // 방금 잡은 자리를 화면에도 반영해 둔다. 바로 또 신청하는 경우를 막는다.
+    await loadTakenSlots();
   });
+
+  function setConfirmLabel(html) {
+    el.modalConfirm.innerHTML = html;
+  }
+
+  // 겹쳐서 돌아왔을 때 시간 칸 아래에 이유를 남긴다.
+  function setAlertOnTime(message) {
+    if (!el.timeError) return;
+    el.timeError.textContent = message;
+    el.timeError.hidden = false;
+    el.time.classList.add('has-error');
+    el.time.focus();
+  }
 
   /* ---------------- 네트워크가 응답하지 않을 때를 위한 제한 시간 ---------------- */
   // 제한이 없으면 응답 없는 요청에 매달려 팝업이 영원히 "보내는 중…"이 된다.
@@ -642,16 +724,53 @@ function showToast(message) {
     }
   }
 
-  /* ---------------- 서버에도 한 부 남기기 (보조) ---------------- */
-  // 일부러 await하지 않는다. 이 요청의 성패는 신청자에게 보여줄 것이 없다.
-  function saveOnServer(values) {
-    fetchWithTimeout('/api/reservations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    }, 60000).catch(() => {
-      // 이메일이 이미 갔다면 서버 기록 실패는 신청자가 알 필요가 없다.
-    });
+  /* ---------------- 서버에 자리 잡기 ----------------
+     겹침을 가려줄 수 있는 곳은 서버뿐이라 메일보다 먼저, 기다려서 호출한다.
+     Render 무료 플랜이 잠들어 있으면 깨어나는 데 시간이 걸리므로 제한 시간을
+     두고, 확인을 못 받은 경우에는 예약을 막지 않고 넘어간다.
+       taken  : 그 시간이 이미 찼다 (팝업을 닫지 않고 고치게 한다)
+       note   : 접수는 됐지만 서버에 보관되지 않았을 때의 안내 */
+  async function holdSlotOnServer(values) {
+    try {
+      const response = await fetchWithTimeout('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      }, 30000);
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (response.status === 409) {
+        return {
+          taken: true,
+          message: (payload.errors && payload.errors.visitTime)
+            || '그 시간은 이미 예약이 찼어요. 다른 시간을 골라주세요.',
+        };
+      }
+
+      if (response.status === 201 && payload.saved) {
+        return { taken: false, note: '' };
+      }
+
+      if (response.ok && payload.saved === false) {
+        // 저장소가 없는 호스트. 겹침을 확인해줄 수 없다는 사실을 숨기지 않는다.
+        return {
+          taken: false,
+          note: '지금은 서버에 예약 기록이 보관되지 않아 시간 중복을 확인하지 못했어요. '
+            + '겹치는 경우 운영자가 회신으로 조정해 드려요.',
+        };
+      }
+
+      // 입력값 문제라면 브라우저 검사와 어긋난 것이다. 막지 않고 메일로 넘긴다.
+      return { taken: false, note: '' };
+    } catch (error) {
+      // 서버에 닿지 못했다. 예약 자체를 막지는 않는다.
+      return {
+        taken: false,
+        note: '서버에 연결하지 못해 시간 중복을 확인하지 못했어요. '
+          + '겹치는 경우 운영자가 회신으로 조정해 드려요.',
+      };
+    }
   }
 
   function restoreConfirm() {
@@ -736,8 +855,43 @@ function showToast(message) {
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
+  /* ---------------- 예약 현황 불러오기 ----------------
+     이미 찬 시간을 (완료)로 막기 위한 값. 못 받아도 예약은 막지 않는다.
+     겹침을 끝에서 잡는 쪽은 서버이고, 그때는 409로 알려준다. */
+  async function loadTakenSlots() {
+    try {
+      const response = await fetchWithTimeout('/api/reservations/taken', {
+        headers: { Accept: 'application/json' },
+      }, 60000);
+      if (!response.ok) throw new Error(`현황 응답 오류: ${response.status}`);
+
+      const data = await response.json();
+      takenSlots = data && typeof data.taken === 'object' && data.taken ? data.taken : {};
+
+      // 현황이 늦게 도착해도 화면이 그에 맞게 다시 그려져야 한다.
+      renderCalendar();
+      renderTimeOptions();
+      refresh();
+      setSlotNote('');
+    } catch (error) {
+      setSlotNote('지금은 예약 현황을 확인할 수 없어요. 이미 찬 시간을 고르면 접수 단계에서 알려드려요.');
+    }
+  }
+
+  function setSlotNote(message) {
+    if (!el.slotNote) return;
+    if (message) {
+      el.slotNote.textContent = message;
+      el.slotNote.hidden = false;
+    } else {
+      el.slotNote.textContent = '';
+      el.slotNote.hidden = true;
+    }
+  }
+
   /* ---------------- 시작 ---------------- */
   renderCalendar();
   renderPickedDate();
   refresh();
+  loadTakenSlots();
 })();
