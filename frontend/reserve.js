@@ -60,6 +60,16 @@ const HOLIDAYS = {
   '2027-12-27': '성탄절 대체공휴일',
 };
 
+/* ==========================================================================
+   Formspree - 예약 내용을 운영자 이메일로 보내는 곳
+   받는 주소는 코드에 적지 않는다. Formspree 대시보드의 폼 설정에 들어 있고,
+   공개 페이지에 이메일을 적으면 스팸 수집기에 그대로 긁힌다.
+   ========================================================================== */
+const FORMSPREE_FORM_ID = 'xqpeaapj';
+const FORMSPREE_ENDPOINT = FORMSPREE_FORM_ID
+  ? `https://formspree.io/f/${FORMSPREE_FORM_ID}`
+  : '';
+
 const BOOKING_WINDOW_DAYS = 90;
 const MAX_PURPOSE_LENGTH = 1000;
 const MIN_PURPOSE_LENGTH = 5;
@@ -514,43 +524,117 @@ function showToast(message) {
     el.modalConfirm.disabled = true;
     el.modalConfirm.innerHTML = '<i class="ri-loader-4-line"></i> 보내는 중…';
 
-    // 서버가 받지 못해도 신청자가 내용을 잃지 않도록 먼저 브라우저에 남긴다.
-    const localRecord = { ...values, createdAt: new Date().toISOString() };
-    saveLocally(localRecord);
+    // 어디로도 못 보내더라도 신청자가 적은 내용을 잃지 않도록 먼저 남긴다.
+    saveLocally({ ...values, createdAt: new Date().toISOString() });
 
-    let saved = false;
-    let note = '';
+    const mailed = await sendToFormspree(values);
+
+    // Formspree가 거절한 이유가 입력값이면 팝업을 닫지 않고 고치게 한다.
+    if (!mailed.ok && mailed.fieldProblem) {
+      showModalError(mailed.message);
+      restoreConfirm();
+      return;
+    }
+
+    // 서버 기록은 이메일 전달의 보조 수단이다. 실패해도 접수를 막지 않는다.
+    await saveOnServer(values);
+
+    closeModal();
+    showDone(values, mailed.ok, mailed.ok ? '' : mailed.message);
+  });
+
+  /* ---------------- Formspree로 보내기 (예약 알림의 본줄기) ---------------- */
+  async function sendToFormspree(values) {
+    if (!FORMSPREE_ENDPOINT) {
+      return {
+        ok: false,
+        fieldProblem: false,
+        message: '예약 알림 설정이 아직 끝나지 않았어요. '
+          + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.',
+      };
+    }
+
+    // 받은 메일에서 바로 읽히도록 한국어 항목명으로 보낸다.
+    // email 항목은 Formspree가 회신 주소로 알아서 잡아준다.
+    const payload = {
+      _subject: `[방문 예약] ${values.name} · ${values.visitDate} ${values.visitTime}`,
+      email: values.email,
+      이름: values.name,
+      방문날짜: formatKorean(values.visitDate),
+      희망시간: values.visitTime,
+      방문목적: values.purpose,
+      정보전달동의: '동의함',
+      신청시각: `${formatKorean(todayIso())} (한국 시간)`,
+      _gotcha: document.getElementById('rsv-gotcha')?.value || '',
+    };
 
     try {
-      const response = await fetch('/api/reservations', {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 이 헤더가 없으면 Formspree가 HTML 페이지로 넘겨버린다.
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) return { ok: true, fieldProblem: false, message: '' };
+
+      const body = await response.json().catch(() => ({}));
+      const reasons = Array.isArray(body.errors)
+        ? body.errors.map((item) => item.message).filter(Boolean)
+        : [];
+
+      // 422는 보낸 값이 문제라는 뜻이라 고쳐서 다시 보낼 수 있다.
+      if (response.status === 422) {
+        return {
+          ok: false,
+          fieldProblem: true,
+          message: reasons.length
+            ? `입력값을 다시 확인해 주세요. (${reasons.join(' / ')})`
+            : '입력값을 다시 확인해 주세요.',
+        };
+      }
+
+      if (response.status === 429) {
+        return {
+          ok: false,
+          fieldProblem: false,
+          message: '예약 신청이 한꺼번에 몰려 잠시 접수가 막혔어요. '
+            + '조금 뒤에 다시 시도해 주시거나 010-4127-2581로 연락해 주세요.',
+        };
+      }
+
+      return {
+        ok: false,
+        fieldProblem: false,
+        message: '예약 알림을 보내지 못했어요. '
+          + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.'
+          + (reasons.length ? ` (${reasons.join(' / ')})` : ''),
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        fieldProblem: false,
+        message: '네트워크 문제로 예약 알림을 보내지 못했어요. '
+          + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.',
+      };
+    }
+  }
+
+  /* ---------------- 서버에도 한 부 남기기 (보조) ---------------- */
+  async function saveOnServer(values) {
+    try {
+      await fetch('/api/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
-
-      const payload = await response.json().catch(() => ({}));
-
-      if (response.status === 201 && payload.saved) {
-        saved = true;
-      } else if (response.ok && payload.saved === false) {
-        // 서버는 받았지만 저장소가 없는 상태. 솔직하게 알린다.
-        note = '지금은 서버 저장소가 연결되어 있지 않아 접수 기록이 보관되지 않았어요. '
-          + '확실하게 전달하시려면 아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주세요.';
-      } else if (payload.errors) {
-        showModalError('입력값을 다시 확인해 주세요.');
-        restoreConfirm();
-        return;
-      } else {
-        note = payload.error || '서버에 예약을 보내지 못했어요.';
-      }
     } catch (error) {
-      note = '네트워크 문제로 서버에 예약을 보내지 못했어요. '
-        + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.';
+      // 이메일이 이미 갔다면 서버 기록 실패는 신청자가 알 필요가 없다.
     }
-
-    closeModal();
-    showDone(values, saved, note);
-  });
+  }
 
   function restoreConfirm() {
     el.modalConfirm.disabled = false;
@@ -577,13 +661,25 @@ function showToast(message) {
   /* ---------------- 접수 완료 ---------------- */
   let lastSubmitted = null;
 
-  function showDone(values, saved, note) {
+  function showDone(values, mailed, note) {
     lastSubmitted = values;
 
     fillSummary(el.doneSummary, values);
-    el.doneDesc.textContent = saved
-      ? '적어주신 이메일로 확인 답장을 보내드릴게요.'
-      : '신청 내용을 아래에 정리했어요.';
+
+    // 이메일로 전달되지 않았다면 "접수되었다"고 말하면 안 된다.
+    const doneTitle = el.done.querySelector('.rsv-done-title');
+    const doneEmoji = el.done.querySelector('.rsv-done-emoji');
+
+    if (mailed) {
+      if (doneEmoji) doneEmoji.textContent = '🎉';
+      if (doneTitle) doneTitle.textContent = '예약 신청이 접수되었어요!';
+      el.doneDesc.textContent = '신청 내용이 운영자에게 전달되었어요. '
+        + '적어주신 이메일로 확인 답장을 보내드릴게요.';
+    } else {
+      if (doneEmoji) doneEmoji.textContent = '🙏';
+      if (doneTitle) doneTitle.textContent = '신청 내용을 전달하지 못했어요';
+      el.doneDesc.textContent = '적어주신 내용은 아래에 그대로 남아 있어요.';
+    }
 
     if (note) {
       el.doneNote.textContent = note;

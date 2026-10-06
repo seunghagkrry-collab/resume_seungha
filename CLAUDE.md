@@ -119,11 +119,37 @@ Rules (both copies must agree):
   after a submit attempt), so the form does not greet them in red.
 
 Flow: 예약하기 → confirm modal showing every value → 확인하고 예약하기 →
-`POST /api/reservations`. The browser writes its own copy to `localStorage`
-*before* the request, so a network failure never loses what the visitor typed;
-the done panel then offers 예약 내용 복사.
+Formspree (the email that matters) → `POST /api/reservations` (a secondary copy).
+The browser writes its own copy to `localStorage` *before* either request, so a
+network failure never loses what the visitor typed; the done panel then offers
+예약 내용 복사.
 
-Storage, and why the response has a `saved` flag:
+### Formspree (how the reservation reaches the inbox)
+
+- Endpoint: `https://formspree.io/f/xqpeaapj`, id in `FORMSPREE_FORM_ID` at the
+  top of `reserve.js`. Submitted with `fetch` as JSON plus
+  `Accept: application/json`; without that header Formspree replies with an HTML
+  page instead of JSON. Preflight from the Vercel domain is allowed.
+- **The recipient address is not in this repo.** It is set in the Formspree
+  dashboard. Do not hardcode it in `frontend/` — a public page with an address in
+  it gets scraped. The `email` field is sent so Formspree sets Reply-To.
+- Field names are sent in Korean (이름, 방문날짜, 희망시간, 방문목적 …) because
+  they become the labels in the email that is received.
+- `_gotcha` is a honeypot input, hidden off-screen rather than with
+  `display: none` (some bots skip hidden inputs). It must arrive empty.
+- Status handling: 422 is treated as a field problem, so the confirm modal stays
+  open with the reason and the visitor can fix it. 429 and anything else close the
+  modal and say plainly that it was not delivered, with the copy button offered.
+- The done panel only says "접수되었어요" when Formspree returned ok. Reaching the
+  success wording without a delivered email would be the one unacceptable outcome.
+- `@formspree/ajax` is deliberately **not** used. It binds to the form's submit
+  event and owns the submit button and the error/success containers, which would
+  fight the confirm-modal flow and the per-field validation already here.
+- Free plan: 50 submissions a month. Past that, Formspree answers 429 and the page
+  falls back to the copy-and-call message.
+
+Server-side storage is the backup copy, not the delivery path. Why the response
+still has a `saved` flag:
 
 - Render's free plan has no persistent disk, so `isWritable()` is false there.
   Rather than claim success and lose the booking, the endpoint answers

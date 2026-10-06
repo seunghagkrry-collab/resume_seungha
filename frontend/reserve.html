@@ -65,6 +65,11 @@
 
     <!-- 예약 신청 폼 -->
     <form class="rsv-form" id="rsv-form" novalidate>
+      <!-- Formspree 허니팟. 사람에게는 보이지 않고, 자동 스팸이 채우면
+           Formspree가 조용히 걸러낸다. 비워진 상태로 보내는 것이 정상이다. -->
+      <input type="text" name="_gotcha" id="rsv-gotcha" tabindex="-1"
+             autocomplete="off" aria-hidden="true" class="rsv-gotcha">
+
       <div class="rsv-layout">
 
         <!-- ================= 왼쪽: 캘린더 + 선택한 날짜 + 희망 시간 ================= -->
