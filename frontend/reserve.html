@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>방문 예약하기 📅 | 최승하의 그린스마트 캠퍼스 노트</title>
-  <meta name="description" content="상명대학교 천안캠퍼스 상록관 306 방문 예약 페이지">
+  <meta name="description" content="상명대학교 천안캠퍼스 상록관 306 방문 예약 신청 - 평일 13:00~18:00">
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,8 +13,16 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="visit.css">
+  <link rel="stylesheet" href="reserve.css">
 </head>
 <body>
+
+  <!-- Cute Floating Top Banner -->
+  <div class="top-announcement">
+    <div class="announcement-content">
+      <span>📅 평일 13:00~18:00 사이로 방문 예약을 받고 있어요! ✨</span>
+    </div>
+  </div>
 
   <!-- Header Navigation -->
   <header class="header">
@@ -32,8 +40,9 @@
       </nav>
 
       <div class="header-btns">
-        <a href="visit.html" class="btn-copy-top">
-          <span>🧭 찾아오는 길로</span>
+        <a href="visit.html" class="btn-visit-top">
+          <i class="ri-road-map-line"></i>
+          <span>찾아오는 길</span>
         </a>
       </div>
     </div>
@@ -41,28 +50,213 @@
 
   <main class="main-container">
 
-    <section class="section-wrap" id="reserve-form">
-      <!-- 예약 양식은 다음 단계에서 구성합니다. -->
-      <div class="reserve-placeholder">
-        <span class="reserve-placeholder-emoji">📅</span>
-        <h1 class="reserve-placeholder-title">방문 예약 페이지 준비 중이에요</h1>
-        <p class="reserve-placeholder-desc">
-          예약 양식은 아직 만들지 않았어요.
-          먼저 찾아오는 길 페이지를 확인해 보시고, 급한 문의는 전화로 연락주세요! 😊
-        </p>
+    <!-- Page Heading -->
+    <section class="visit-hero">
+      <div class="visit-hero-badge">📅 방문 예약 신청</div>
+      <h1 class="visit-hero-title">
+        방문 예약하기 ✍️<br>
+        <span class="highlight-green">상록관 306</span>에서 만날 시간을 정해요!
+      </h1>
+      <p class="visit-hero-desc">
+        포트폴리오를 보시고 더 이야기 나누고 싶으시다면 아래에서 날짜와 시간을 골라주세요.
+        예약은 <strong>공휴일을 제외한 평일 13:00~18:00</strong>에만 받고 있어요.
+      </p>
+    </section>
 
-        <div class="reserve-back-btns">
-          <a href="visit.html" class="btn-map-action map-link">
-            <i class="ri-arrow-left-line"></i> 찾아오는 길로 돌아가기
-          </a>
-          <a href="tel:010-4127-2581" class="btn-map-action">
-            <i class="ri-phone-line"></i> 010-4127-2581
-          </a>
+    <!-- 예약 신청 폼 -->
+    <form class="rsv-form" id="rsv-form" novalidate>
+      <div class="rsv-layout">
+
+        <!-- ================= 왼쪽: 캘린더 + 선택한 날짜 + 희망 시간 ================= -->
+        <div class="rsv-col rsv-col-date">
+          <h2 class="rsv-col-title">
+            <span class="rsv-step">1</span> 날짜와 시간 고르기
+          </h2>
+
+          <!-- 캘린더 -->
+          <div class="rsv-calendar">
+            <div class="rsv-cal-head">
+              <button type="button" class="rsv-cal-nav" id="rsv-cal-prev" aria-label="이전 달 보기">
+                <i class="ri-arrow-left-s-line"></i>
+              </button>
+              <strong class="rsv-cal-label" id="rsv-cal-label" aria-live="polite">—</strong>
+              <button type="button" class="rsv-cal-nav" id="rsv-cal-next" aria-label="다음 달 보기">
+                <i class="ri-arrow-right-s-line"></i>
+              </button>
+            </div>
+
+            <div class="rsv-cal-weekdays" aria-hidden="true">
+              <span class="is-sun">일</span>
+              <span>월</span>
+              <span>화</span>
+              <span>수</span>
+              <span>목</span>
+              <span>금</span>
+              <span class="is-sat">토</span>
+            </div>
+
+            <div class="rsv-cal-grid" id="rsv-cal-grid" role="grid" aria-label="방문 날짜 선택"></div>
+
+            <p class="rsv-cal-legend">
+              <span class="legend-item"><i class="dot dot-open"></i> 예약 가능</span>
+              <span class="legend-item"><i class="dot dot-holiday"></i> 주말 · 공휴일</span>
+              <span class="legend-item"><i class="dot dot-picked"></i> 선택</span>
+            </p>
+          </div>
+
+          <!-- 선택한 날짜 박스 -->
+          <div class="rsv-picked-box" id="rsv-picked-box">
+            <span class="rsv-picked-label">선택한 날짜</span>
+            <strong class="rsv-picked-value" id="rsv-picked-value" aria-live="polite">
+              아직 날짜를 고르지 않았어요
+            </strong>
+          </div>
+          <p class="rsv-field-error" id="rsv-date-error" hidden></p>
+
+          <!-- 희망 시간 -->
+          <div class="rsv-field">
+            <label class="rsv-label" for="rsv-time">
+              희망 시간 <span class="rsv-required">*</span>
+            </label>
+            <div class="rsv-select-wrap">
+              <select class="rsv-select" id="rsv-time" name="visitTime" required
+                      aria-describedby="rsv-time-error">
+                <option value="">시간을 선택해 주세요</option>
+              </select>
+              <i class="ri-arrow-down-s-line rsv-select-caret" aria-hidden="true"></i>
+            </div>
+            <p class="rsv-field-error" id="rsv-time-error" hidden></p>
+            <p class="rsv-field-help">13:00부터 18:00까지 30분 단위로 고를 수 있어요.</p>
+          </div>
         </div>
+
+        <!-- ================= 오른쪽: 신청자 정보 ================= -->
+        <div class="rsv-col rsv-col-info">
+          <h2 class="rsv-col-title">
+            <span class="rsv-step">2</span> 신청자 정보 적기
+          </h2>
+
+          <!-- 이름 -->
+          <div class="rsv-field">
+            <label class="rsv-label" for="rsv-name">
+              이름 <span class="rsv-required">*</span>
+            </label>
+            <input class="rsv-input" type="text" id="rsv-name" name="name"
+                   placeholder="예: 홍길동" maxlength="40" autocomplete="name"
+                   required aria-describedby="rsv-name-error">
+            <p class="rsv-field-error" id="rsv-name-error" hidden></p>
+          </div>
+
+          <!-- 이메일 -->
+          <div class="rsv-field">
+            <label class="rsv-label" for="rsv-email">
+              답장받을 이메일 <span class="rsv-required">*</span>
+            </label>
+            <input class="rsv-input" type="email" id="rsv-email" name="email"
+                   placeholder="예: hong@example.com" maxlength="120" autocomplete="email"
+                   required aria-describedby="rsv-email-error">
+            <p class="rsv-field-error" id="rsv-email-error" hidden></p>
+            <p class="rsv-field-help">이 주소로 예약 확인 답장을 보내드려요.</p>
+          </div>
+
+          <!-- 방문 목적 -->
+          <div class="rsv-field">
+            <label class="rsv-label" for="rsv-purpose">
+              방문 목적 <span class="rsv-required">*</span>
+            </label>
+            <textarea class="rsv-textarea" id="rsv-purpose" name="purpose" rows="7"
+                      maxlength="1000" required aria-describedby="rsv-purpose-error"
+                      placeholder="어떤 이야기를 나누고 싶으신지 편하게 적어주세요.&#10;예) 포트폴리오의 GIS 분석 프로젝트에 대해 더 듣고 싶습니다."></textarea>
+            <div class="rsv-textarea-foot">
+              <p class="rsv-field-error" id="rsv-purpose-error" hidden></p>
+              <span class="rsv-counter" id="rsv-purpose-count">0 / 1000</span>
+            </div>
+          </div>
+
+          <!-- 동의 + 예약하기 -->
+          <div class="rsv-submit-area">
+            <label class="rsv-consent" for="rsv-consent">
+              <input type="checkbox" id="rsv-consent" name="consent"
+                     aria-describedby="rsv-consent-error">
+              <span class="rsv-consent-box" aria-hidden="true">
+                <i class="ri-check-line"></i>
+              </span>
+              <span class="rsv-consent-text">
+                입력 정보를 예약 상담 목적으로 운영자에게 전달하는 것에 동의합니다.
+                <span class="rsv-required">*</span>
+              </span>
+            </label>
+            <p class="rsv-field-error" id="rsv-consent-error" hidden></p>
+
+            <button type="submit" class="btn-rsv-submit" id="rsv-submit" disabled>
+              <i class="ri-calendar-check-line"></i>
+              <span>예약하기</span>
+            </button>
+
+            <p class="rsv-submit-hint" id="rsv-submit-hint" aria-live="polite">
+              필수 항목을 모두 채우면 예약하기 버튼이 켜져요.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </form>
+
+    <!-- 접수 완료 패널 (처음에는 숨김) -->
+    <section class="rsv-done" id="rsv-done" hidden aria-live="polite">
+      <span class="rsv-done-emoji">🎉</span>
+      <h2 class="rsv-done-title">예약 신청이 접수되었어요!</h2>
+      <p class="rsv-done-desc" id="rsv-done-desc">
+        적어주신 이메일로 확인 답장을 보내드릴게요.
+      </p>
+
+      <dl class="rsv-summary" id="rsv-done-summary"></dl>
+
+      <p class="rsv-done-note" id="rsv-done-note" hidden></p>
+
+      <div class="rsv-done-btns">
+        <button type="button" class="btn-map-action" id="rsv-copy-summary">
+          <i class="ri-file-copy-line"></i> 예약 내용 복사
+        </button>
+        <button type="button" class="btn-map-action" id="rsv-again">
+          <i class="ri-add-line"></i> 다시 예약하기
+        </button>
+        <a href="visit.html" class="btn-map-action map-link">
+          <i class="ri-road-map-line"></i> 찾아오는 길 보기
+        </a>
       </div>
     </section>
 
   </main>
+
+  <!-- 확인 팝업 -->
+  <div class="rsv-modal-backdrop" id="rsv-modal" hidden>
+    <div class="rsv-modal" role="dialog" aria-modal="true" aria-labelledby="rsv-modal-title">
+      <div class="rsv-modal-head">
+        <span class="rsv-modal-emoji">📋</span>
+        <h2 class="rsv-modal-title" id="rsv-modal-title">예약 내용을 확인해 주세요</h2>
+        <p class="rsv-modal-sub">아래 내용이 맞으면 <strong>확인하고 예약하기</strong>를 눌러주세요.</p>
+      </div>
+
+      <dl class="rsv-summary" id="rsv-modal-summary"></dl>
+
+      <p class="rsv-modal-consent">
+        <i class="ri-shield-check-line"></i>
+        입력 정보를 예약 상담 목적으로 운영자에게 전달하는 것에 동의하셨어요.
+      </p>
+
+      <p class="rsv-modal-error" id="rsv-modal-error" hidden></p>
+
+      <div class="rsv-modal-btns">
+        <button type="button" class="btn-rsv-modal secondary" id="rsv-modal-cancel">
+          <i class="ri-arrow-left-line"></i> 다시 수정하기
+        </button>
+        <button type="button" class="btn-rsv-modal primary" id="rsv-modal-confirm">
+          <i class="ri-check-line"></i> 확인하고 예약하기
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Cute & Warm Footer -->
   <footer class="footer-cute">
@@ -81,5 +275,12 @@
     </div>
   </footer>
 
+  <!-- Toast Notification -->
+  <div id="toast" class="cute-toast">
+    <span class="toast-icon">✨</span>
+    <span id="toast-msg">복사되었습니다!</span>
+  </div>
+
+  <script src="reserve.js"></script>
 </body>
 </html>

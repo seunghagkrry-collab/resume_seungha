@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { getPortfolioData } = require('./data/portfolioData');
 const projectStore = require('./data/projectStore');
+const reservationStore = require('./data/reservationStore');
 const adminAuth = require('./auth/adminAuth');
 const storage = require('./data/storage');
 const { isEphemeralHost, isWritable, hasMalformedBlobToken } = require('./runtime');
@@ -237,6 +238,109 @@ async function handleAdminProjects(request, response, requestUrl) {
 }
 
 /* ==========================================================================
+   방문 예약
+   ========================================================================== */
+
+// 예약 신청은 누구나 보낼 수 있으므로 같은 주소에서 몰아치는 것만 막는다.
+const RESERVATION_WINDOW_MS = 10 * 60 * 1000;
+const RESERVATION_MAX_PER_WINDOW = 5;
+const reservationHits = new Map();
+
+function clientKey(request) {
+  const forwarded = request.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.length > 0) {
+    return forwarded.split(',')[0].trim();
+  }
+  return request.socket.remoteAddress || 'unknown';
+}
+
+function tooManyReservations(request) {
+  const key = clientKey(request);
+  const now = Date.now();
+  const recent = (reservationHits.get(key) || []).filter((at) => now - at < RESERVATION_WINDOW_MS);
+
+  if (recent.length >= RESERVATION_MAX_PER_WINDOW) {
+    reservationHits.set(key, recent);
+    return true;
+  }
+
+  recent.push(now);
+  reservationHits.set(key, recent);
+
+  // 오래된 기록은 들고 있을 이유가 없다.
+  if (reservationHits.size > 500) {
+    for (const [storedKey, times] of reservationHits) {
+      if (times.every((at) => now - at >= RESERVATION_WINDOW_MS)) reservationHits.delete(storedKey);
+    }
+  }
+  return false;
+}
+
+async function handleCreateReservation(request, response) {
+  if (tooManyReservations(request)) {
+    sendJson(response, 429, { error: '예약 신청이 너무 많아요. 잠시 뒤에 다시 시도해 주세요.' });
+    return;
+  }
+
+  let body;
+  try {
+    body = await readJsonBody(request);
+  } catch (error) {
+    const message =
+      error.message === 'PAYLOAD_TOO_LARGE' ? '내용이 너무 길어요.' : '요청을 읽을 수 없어요.';
+    sendJson(response, 400, { error: message });
+    return;
+  }
+
+  const checked = reservationStore.validate(body);
+  if (!checked.ok) {
+    sendJson(response, 400, { errors: checked.errors });
+    return;
+  }
+
+  // 저장이 유지되지 않는 호스트에서 "접수됐다"고만 말하면 예약이 사라진다.
+  // 저장소가 붙기 전까지는 서버 로그에 남겨 최소한 되찾을 수 있게 하고,
+  // 저장되지 않았다는 사실을 응답에 그대로 담아 브라우저가 안내하게 한다.
+  if (!isWritable()) {
+    console.log('[예약 접수 / 저장소 없음]', JSON.stringify(checked.value));
+    sendJson(response, 200, {
+      saved: false,
+      reason: '서버에 저장소가 연결되지 않아 예약이 보관되지 않았어요.',
+    });
+    return;
+  }
+
+  try {
+    const result = await reservationStore.addReservation(checked.value);
+    if (!result.ok) {
+      sendJson(response, 400, { errors: result.errors });
+      return;
+    }
+    sendJson(response, 201, { saved: true, id: result.record.id });
+  } catch (error) {
+    console.error('[예약] 저장 실패:', error.message || error);
+    sendJson(response, 503, { error: '예약을 저장하지 못했어요. 잠시 뒤에 다시 시도해 주세요.' });
+  }
+}
+
+async function handleAdminReservations(request, response) {
+  if (!isAuthenticated(request)) {
+    sendJson(response, 401, { error: '로그인이 필요해요.' });
+    return;
+  }
+  if (request.method !== 'GET') {
+    sendJson(response, 405, { error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    sendJson(response, 200, { reservations: await reservationStore.listReservations() });
+  } catch (error) {
+    sendJson(response, 503, { error: '예약 목록을 읽지 못했어요.' });
+  }
+}
+
+/* ==========================================================================
    라우팅
    ========================================================================== */
 
@@ -268,13 +372,38 @@ function requestHandler(request, response) {
     return;
   }
 
+  if (pathname === '/api/admin/reservations') {
+    handleAdminReservations(request, response);
+    return;
+  }
+
+  if (pathname === '/api/reservations' && request.method === 'POST') {
+    handleCreateReservation(request, response);
+    return;
+  }
+
   if (request.method !== 'GET') {
     sendJson(response, 405, { error: 'Method not allowed' });
     return;
   }
 
   if (pathname === '/api/health') {
-    sendJson(response, 200, { status: 'ok', storage: storage.describe() });
+    sendJson(response, 200, {
+      status: 'ok',
+      storage: storage.describe(),
+      reservations: reservationStore.describeStorage(),
+    });
+    return;
+  }
+
+  // 브라우저가 시간 슬롯과 휴일 규칙을 서버와 맞출 수 있게 열어둔다.
+  if (pathname === '/api/reservation-options') {
+    sendJson(response, 200, {
+      timeSlots: reservationStore.TIME_SLOTS,
+      holidays: reservationStore.HOLIDAYS,
+      bookingWindowDays: reservationStore.BOOKING_WINDOW_DAYS,
+      maxPurposeLength: reservationStore.MAX_PURPOSE_LENGTH,
+    });
     return;
   }
 

@@ -1,0 +1,832 @@
+/* ==========================================================================
+   방문 예약 페이지 전용 스타일
+   style.css의 토큰을 쓰고, visit.css 위에 얹는다.
+   ========================================================================== */
+
+:root {
+  --rsv-danger: #d64545;
+  --rsv-danger-bg: #fdecec;
+  --rsv-danger-border: #f5c2c2;
+}
+
+/* ==========================================================================
+   레이아웃
+   ========================================================================== */
+.rsv-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 44px;
+}
+
+.rsv-col {
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 24px 22px;
+}
+
+.rsv-col-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--text-main);
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--border-card);
+  margin-bottom: 18px;
+}
+
+.rsv-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  background: var(--primary-green);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   캘린더
+   ========================================================================== */
+.rsv-calendar {
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 12px 12px;
+}
+
+.rsv-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rsv-cal-label {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--text-main);
+}
+
+.rsv-cal-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 50%;
+  color: var(--text-sub);
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.rsv-cal-nav:hover:not(:disabled) {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: #ffffff;
+}
+
+.rsv-cal-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.rsv-cal-weekdays,
+.rsv-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.rsv-cal-weekdays {
+  margin-bottom: 6px;
+}
+
+.rsv-cal-weekdays span {
+  text-align: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.rsv-cal-weekdays .is-sun {
+  color: var(--rsv-danger);
+}
+
+.rsv-cal-weekdays .is-sat {
+  color: var(--accent-blue-dark);
+}
+
+.rsv-cal-blank {
+  display: block;
+}
+
+.rsv-cal-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 42px;
+  padding: 4px 2px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+  transition: all 0.15s ease;
+}
+
+/* 예약 가능한 평일 */
+.rsv-cal-day.is-open {
+  border-color: var(--primary-green-border);
+  color: var(--primary-green);
+}
+
+.rsv-cal-day.is-open:hover {
+  background: var(--primary-green-light);
+  border-color: var(--primary-green);
+  transform: translateY(-1px);
+}
+
+/* 고를 수 없는 날 */
+.rsv-cal-day:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.rsv-cal-day.is-weekend:disabled,
+.rsv-cal-day.is-holiday:disabled {
+  background: var(--rsv-danger-bg);
+  border-color: var(--rsv-danger-border);
+  color: var(--rsv-danger);
+}
+
+.rsv-cal-day.is-past:disabled,
+.rsv-cal-day.is-far:disabled {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.rsv-cal-holiday-tag {
+  font-size: 0.56rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 선택한 날 */
+.rsv-cal-day.is-picked {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(59, 122, 87, 0.3);
+}
+
+.rsv-cal-day.is-picked:hover {
+  background: var(--primary-green-hover);
+}
+
+.rsv-cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  margin-top: 12px;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-item .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.dot-open {
+  background: var(--primary-green-light);
+  border: 1px solid var(--primary-green);
+}
+
+.dot-holiday {
+  background: var(--rsv-danger-bg);
+  border: 1px solid var(--rsv-danger-border);
+}
+
+.dot-picked {
+  background: var(--primary-green);
+  border: 1px solid var(--primary-green);
+}
+
+/* ==========================================================================
+   선택한 날짜 박스
+   ========================================================================== */
+.rsv-picked-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--bg-card-sub);
+  border: 2px dashed var(--border-card);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.rsv-picked-box.is-filled {
+  background: var(--primary-green-light);
+  border-style: solid;
+  border-color: var(--primary-green-border);
+}
+
+.rsv-picked-box.has-error {
+  background: var(--rsv-danger-bg);
+  border-style: solid;
+  border-color: var(--rsv-danger-border);
+}
+
+.rsv-picked-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-muted);
+}
+
+.rsv-picked-box.is-filled .rsv-picked-label {
+  color: var(--primary-green);
+}
+
+.rsv-picked-value {
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.rsv-picked-box.is-filled .rsv-picked-value {
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   입력 칸 공통
+   ========================================================================== */
+.rsv-field {
+  margin-top: 18px;
+}
+
+/* 제목 바로 뒤에 오는 칸은 제목의 아래 여백만으로 충분하다. */
+.rsv-col-title + .rsv-field {
+  margin-top: 0;
+}
+
+.rsv-label {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-main);
+  margin-bottom: 7px;
+}
+
+.rsv-required {
+  color: var(--rsv-danger);
+  font-weight: 800;
+}
+
+.rsv-input,
+.rsv-textarea,
+.rsv-select {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+.rsv-input::placeholder,
+.rsv-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.rsv-input:focus,
+.rsv-textarea:focus,
+.rsv-select:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px var(--primary-green-light);
+}
+
+/* 잘못 입력한 칸은 테두리와 배경을 빨갛게 바꾼다. */
+.rsv-input.has-error,
+.rsv-textarea.has-error,
+.rsv-select.has-error {
+  border-color: var(--rsv-danger);
+  background: var(--rsv-danger-bg);
+}
+
+.rsv-input.has-error:focus,
+.rsv-textarea.has-error:focus,
+.rsv-select.has-error:focus {
+  box-shadow: 0 0 0 3px var(--rsv-danger-border);
+}
+
+/* 방문 목적은 긴 문장을 받으므로 넉넉하게. */
+.rsv-textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+.rsv-textarea-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.rsv-counter {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 드롭다운 */
+.rsv-select-wrap {
+  position: relative;
+}
+
+.rsv-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 38px;
+  cursor: pointer;
+}
+
+.rsv-select-caret {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 1.15rem;
+  color: var(--text-sub);
+}
+
+/* 안내 / 오류 문구 */
+.rsv-field-help {
+  margin-top: 5px;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.rsv-field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 0.79rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--rsv-danger);
+}
+
+.rsv-field-error::before {
+  content: '⚠';
+  flex-shrink: 0;
+}
+
+/* display:flex가 hidden 속성을 덮어쓰므로 직접 꺼준다. */
+.rsv-field-error[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   동의 + 예약하기
+   ========================================================================== */
+.rsv-submit-area {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border-card);
+}
+
+.rsv-consent {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  cursor: pointer;
+}
+
+/* 실제 체크박스는 그려놓은 상자 자리에 투명하게 겹쳐 둔다.
+   보이지 않지만 키보드 포커스와 스크린리더에는 그대로 남는다. */
+.rsv-consent input[type="checkbox"] {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  opacity: 0;
+}
+
+.rsv-consent-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: 6px;
+  color: transparent;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.rsv-consent input:checked + .rsv-consent-box {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: #ffffff;
+}
+
+.rsv-consent input:focus-visible + .rsv-consent-box {
+  box-shadow: 0 0 0 3px var(--primary-green-light);
+}
+
+.rsv-consent-text {
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+.btn-rsv-submit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 15px 20px;
+  background: var(--primary-green);
+  color: #ffffff;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.3;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 18px rgba(59, 122, 87, 0.28);
+  transition: all 0.2s ease;
+}
+
+.btn-rsv-submit:hover:not(:disabled) {
+  background: var(--primary-green-hover);
+  transform: translateY(-2px);
+}
+
+/* 필수 항목이 비어 있으면 눌러도 소용없다는 걸 분명히 보여준다. */
+.btn-rsv-submit:disabled {
+  background: var(--bg-card-sub);
+  color: var(--text-muted);
+  border: 1px solid var(--border-card);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rsv-submit-hint {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.79rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.rsv-submit-hint.is-ready {
+  color: var(--primary-green);
+}
+
+/* ==========================================================================
+   요약 (팝업 / 접수 완료에서 함께 쓴다)
+   ========================================================================== */
+.rsv-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.rsv-summary-row {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 12px;
+  background: var(--bg-card);
+  padding: 12px 15px;
+}
+
+.rsv-summary-row dt {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.rsv-summary-row dd {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.65;
+  color: var(--text-main);
+  word-break: break-all;
+}
+
+.rsv-summary-row dd.is-long {
+  font-weight: 500;
+  white-space: pre-wrap; /* 방문 목적의 줄바꿈을 살린다. */
+  word-break: keep-all;
+}
+
+/* ==========================================================================
+   확인 팝업
+   ========================================================================== */
+body.rsv-modal-open {
+  overflow: hidden;
+}
+
+.rsv-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(45, 55, 72, 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.rsv-modal-backdrop[hidden] {
+  display: none;
+}
+
+.rsv-modal {
+  width: 100%;
+  max-width: 520px;
+  margin: auto;
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(45, 55, 72, 0.25);
+  padding: 28px 26px 24px;
+}
+
+.rsv-modal-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.rsv-modal-emoji {
+  display: block;
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.rsv-modal-title {
+  font-size: 1.22rem;
+  font-weight: 800;
+  line-height: 1.45;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.rsv-modal-sub {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--text-sub);
+}
+
+.rsv-modal-sub strong {
+  color: var(--primary-green);
+}
+
+.rsv-modal-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 11px 14px;
+  background: var(--primary-green-light);
+  border: 1px solid var(--primary-green-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--primary-green);
+}
+
+.rsv-modal-error {
+  margin-top: 12px;
+  padding: 11px 14px;
+  background: var(--rsv-danger-bg);
+  border: 1px solid var(--rsv-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.83rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--rsv-danger);
+}
+
+.rsv-modal-btns {
+  display: flex;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.btn-rsv-modal {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 13px 14px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.3;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+}
+
+.btn-rsv-modal.primary {
+  background: var(--primary-green);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(59, 122, 87, 0.26);
+}
+
+.btn-rsv-modal.primary:hover:not(:disabled) {
+  background: var(--primary-green-hover);
+}
+
+.btn-rsv-modal.primary:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.btn-rsv-modal.secondary {
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-card);
+  color: var(--text-main);
+}
+
+.btn-rsv-modal.secondary:hover {
+  background: #ffffff;
+  border-color: var(--primary-green);
+}
+
+/* ==========================================================================
+   접수 완료
+   ========================================================================== */
+.rsv-done {
+  background: var(--bg-card);
+  border: 2px solid var(--primary-green-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 36px 28px 30px;
+  text-align: center;
+  margin-bottom: 44px;
+}
+
+.rsv-done[hidden] {
+  display: none;
+}
+
+.rsv-done-emoji {
+  display: block;
+  font-size: 2.8rem;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.rsv-done-title {
+  font-size: 1.32rem;
+  font-weight: 800;
+  line-height: 1.45;
+  color: var(--primary-green);
+  margin-bottom: 8px;
+}
+
+.rsv-done-desc {
+  font-size: 0.93rem;
+  line-height: 1.7;
+  color: var(--text-sub);
+  margin-bottom: 20px;
+}
+
+.rsv-done .rsv-summary {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.rsv-done-note {
+  padding: 13px 15px;
+  background: var(--accent-yellow);
+  border: 1px solid var(--accent-yellow-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--accent-yellow-dark);
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.rsv-done-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+}
+
+.rsv-done-btns .btn-map-action {
+  flex: 0 1 170px;
+}
+
+/* ==========================================================================
+   반응형
+   ========================================================================== */
+@media (max-width: 860px) {
+  .rsv-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .rsv-col {
+    padding: 20px 16px;
+  }
+  .rsv-cal-day {
+    min-height: 38px;
+    font-size: 0.82rem;
+  }
+  .rsv-cal-holiday-tag {
+    display: none; /* 좁은 화면에서는 날짜 숫자만 남긴다. */
+  }
+  .rsv-summary-row {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+  .rsv-modal {
+    padding: 22px 18px 18px;
+  }
+  .rsv-modal-btns {
+    flex-direction: column;
+  }
+}

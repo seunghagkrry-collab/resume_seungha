@@ -20,13 +20,18 @@ portfolio/
     visit.html   # 찾아오는 길: map, address, campus weather, reservation CTA
     visit.css    # Styles for visit.html and reserve.html
     visit.js     # Leaflet map + Open-Meteo weather + address copy
-    reserve.html # 방문 예약 page shell (form not built yet)
+    reserve.html # 방문 예약 form: calendar, time, applicant fields, confirm modal
+    reserve.css  # Styles for reserve.html
+    reserve.js   # Calendar, validation, submit gating, confirm modal, POST
   backend/
     server.js                  # HTTP server, public API, admin API
     auth/adminAuth.js          # Password hashing, sessions, lockout
     data/projectStore.js       # JSON file persistence + validation
     data/portfolioData.js      # Public API adapter (published only)
     data/projects.json         # Project records (committed)
+    data/reservationStore.js   # Visit-reservation rules + validation
+    data/reservationStorage.js # Reservation persistence (file or Blob)
+    data/reservations.json     # Reservation records (gitignored: visitor PII)
     data/admin.local.json      # Password hash (gitignored, auto-created)
   scripts/setAdminPassword.js
   package.json
@@ -89,6 +94,49 @@ Validation rules:
 - `linkUrl` accepts only `http:` and `https:`; anything else is stored as an empty string.
 
 The server re-validates every write. Browser-side checks are for feedback only.
+
+## Reservation page (방문 예약)
+
+Public at `/reserve`. `reserve.js` runs the form; `backend/data/reservationStore.js`
+holds the real rules and re-checks every field the browser already checked.
+
+Rules (both copies must agree):
+
+- Selectable dates: weekdays only, no public holidays, from tomorrow to
+  `BOOKING_WINDOW_DAYS` (90) ahead. Same-day booking is refused.
+- The holiday table lives twice — `backend/data/reservationStore.js` and
+  `frontend/reserve.js`. It came from date.nager.at's KR list, minus 제헌절
+  (a commemorative day, not a day off), plus 근로자의 날. **Covers 2026–2027
+  only; add the next year before it arrives, and change both copies together.**
+- Time slots: 13:00–18:00 inclusive, every 30 minutes, generated from one loop
+  rather than written out, so the range is changed in one place.
+- Required: name, email, purpose, date, time, and the consent checkbox. The
+  submit button stays `disabled` until all six pass. Server returns 400 with a
+  per-field `errors` map if anything is missing.
+- Email must match `/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/`. A bad value turns the
+  input red and prints the reason under it.
+- Red error text only appears for fields the visitor has already touched (or
+  after a submit attempt), so the form does not greet them in red.
+
+Flow: 예약하기 → confirm modal showing every value → 확인하고 예약하기 →
+`POST /api/reservations`. The browser writes its own copy to `localStorage`
+*before* the request, so a network failure never loses what the visitor typed;
+the done panel then offers 예약 내용 복사.
+
+Storage, and why the response has a `saved` flag:
+
+- Render's free plan has no persistent disk, so `isWritable()` is false there.
+  Rather than claim success and lose the booking, the endpoint answers
+  `200 { saved: false, reason }`, logs the full record to the server console,
+  and the page tells the visitor plainly that it was not stored.
+- Set `BLOB_READ_WRITE_TOKEN` and reservations persist in Vercel Blob with
+  `access: 'private'` — unlike projects.json these must not be publicly fetchable.
+- `reservations.json` is gitignored. It holds names and emails; never commit it.
+- Read them back with `GET /api/admin/reservations` (admin session required).
+- `GET /api/health` reports reservation storage separately from project storage.
+
+`POST /api/reservations` is open to anyone, so it is rate limited to 5 requests
+per 10 minutes per client IP (in-memory, resets on restart).
 
 ## Visit page (찾아오는 길)
 
