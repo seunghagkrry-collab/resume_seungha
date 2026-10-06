@@ -4,7 +4,45 @@
 // 브라우저에서도 같은 규칙으로 막아주지만(frontend/reserve.js), 그쪽은
 // 사용자에게 바로 알려주기 위한 것이고 진짜 기준은 여기다.
 
+const crypto = require('node:crypto');
 const storage = require('./reservationStorage');
+
+/* ==========================================================================
+   처리 상태
+   운영자가 예약을 네 단계로 관리한다. 저장에는 영어 코드를 쓰고,
+   화면에 보일 한국어 이름은 라벨로 함께 내보낸다.
+   ========================================================================== */
+const STATUS_LABELS = {
+  received: '접수',          // 신청자가 넣은 그대로
+  confirmed: '확정',          // 그 날짜·시간에 만나기로 승인
+  change_requested: '변경 요청', // 만나고는 싶지만 다른 시간을 원할 때
+  cancelled: '취소',          // 이 방문을 받지 않을 때
+};
+const STATUSES = Object.keys(STATUS_LABELS);
+const DEFAULT_STATUS = 'received';
+
+function normalizeStatus(value) {
+  if (STATUSES.includes(value)) return value;
+  // 예약 기능을 처음 넣을 때 쓰던 값.
+  if (value === 'new') return DEFAULT_STATUS;
+  return DEFAULT_STATUS;
+}
+
+/* ==========================================================================
+   예약번호
+   같은 사람이 여러 번 방문할 수 있으므로 이름/이메일만으로는 구분되지 않는다.
+   (이름 + 이메일) 해시에 방문 날짜·시간을 붙여 한 칸(슬롯)당 하나가 되게 한다.
+   예: R-261007-1430-A3F1
+   ========================================================================== */
+function reservationCode(record) {
+  const person = `${String(record.email || '').trim().toLowerCase()}|${String(record.name || '').trim()}`;
+  const personTag = crypto.createHash('sha256').update(person).digest('hex').slice(0, 4).toUpperCase();
+
+  const date = String(record.visitDate || '').replace(/-/g, '').slice(2); // YYMMDD
+  const time = String(record.visitTime || '').replace(':', '');           // HHMM
+
+  return `R-${date}-${time}-${personTag}`;
+}
 
 /* ==========================================================================
    예약 가능 시간
@@ -207,10 +245,26 @@ function makeId() {
   return `rsv_${stamp}_${random}`;
 }
 
+// 예전에 저장된 기록에는 code가 없고 status가 'new'일 수 있다.
+// 화면에서 분기하지 않도록 읽는 길목에서 모양을 맞춰 준다.
+function decorate(record) {
+  const status = normalizeStatus(record.status);
+  return {
+    ...record,
+    status,
+    statusLabel: STATUS_LABELS[status],
+    code: record.code || reservationCode(record),
+  };
+}
+
 async function listReservations() {
   const reservations = await storage.readReservations();
-  // 최근 신청이 위로.
-  return [...reservations].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  return [...reservations]
+    // 신청이 들어온 순서대로 번호를 세기 위해 먼저 오래된 것부터 정렬한다.
+    .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)))
+    .map((record, index) => ({ ...decorate(record), seq: index + 1 }))
+    // 보여줄 때는 최근 신청이 위로.
+    .reverse();
 }
 
 async function addReservation(input) {
@@ -219,16 +273,35 @@ async function addReservation(input) {
 
   const record = {
     id: makeId(),
-    status: 'new',
+    status: DEFAULT_STATUS,
     ...checked.value,
     createdAt: new Date().toISOString(),
   };
+  record.code = reservationCode(record);
 
   const reservations = await storage.readReservations();
   reservations.push(record);
   await storage.writeReservations(reservations);
 
-  return { ok: true, record };
+  return { ok: true, record: decorate(record) };
+}
+
+async function updateStatus(id, status) {
+  if (!STATUSES.includes(status)) {
+    return { ok: false, badStatus: true };
+  }
+
+  const reservations = await storage.readReservations();
+  const found = reservations.find((record) => record.id === id);
+  if (!found) return { ok: false, notFound: true };
+
+  found.status = status;
+  found.updatedAt = new Date().toISOString();
+  // 예전 기록에는 번호가 없다. 손대는 김에 함께 채워 둔다.
+  if (!found.code) found.code = reservationCode(found);
+
+  await storage.writeReservations(reservations);
+  return { ok: true, record: decorate(found) };
 }
 
 module.exports = {
@@ -236,9 +309,12 @@ module.exports = {
   HOLIDAYS,
   BOOKING_WINDOW_DAYS,
   MAX_PURPOSE_LENGTH,
+  STATUSES,
+  STATUS_LABELS,
   validate,
   describeDate,
   listReservations,
   addReservation,
+  updateStatus,
   describeStorage: storage.describe,
 };

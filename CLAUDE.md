@@ -23,6 +23,9 @@ portfolio/
     reserve.html # 방문 예약 form: calendar, time, applicant fields, confirm modal
     reserve.css  # Styles for reserve.html
     reserve.js   # Calendar, validation, submit gating, confirm modal, POST
+    admin-reservations.html # 예약하기 관리 tab: the reservation table
+    admin-reservations.css  # Styles for the reservation table
+    admin-reservations.js   # Reservation list + 처리 상태 changes
   backend/
     server.js                  # HTTP server, public API, admin API
     auth/adminAuth.js          # Password hashing, sessions, lockout
@@ -72,6 +75,8 @@ Admin (requires the `admin_session` cookie):
 - `POST /api/admin/projects` creates a project
 - `PUT /api/admin/projects/:id` updates a project
 - `DELETE /api/admin/projects/:id` deletes a project
+- `GET /api/admin/reservations` returns every reservation, newest first
+- `PATCH /api/admin/reservations/:id` with `{ "status": "confirmed" }` sets 처리 상태
 
 ## Project record shape
 
@@ -147,6 +152,37 @@ network failure never loses what the visitor typed; the done panel then offers
   fight the confirm-modal flow and the per-field validation already here.
 - Free plan: 50 submissions a month. Past that, Formspree answers 429 and the page
   falls back to the copy-and-call message.
+
+### Managing reservations (예약하기 관리)
+
+`admin-reservations.html`, reached from the tab in the top-right of either admin
+screen. Served at `/admin-reservations` — **not** `/admin/reservations`, because
+one level deeper makes the page's relative `admin.css` resolve to
+`/admin/admin.css` and every asset 404s. Keep admin pages at the same depth.
+
+- The table columns are fixed: 예약번호 / 신청자 · 이메일 / 방문 희망 시간 /
+  방문 목적 / 처리 상태 / 관리. The 관리 column is four buttons, one per status;
+  the current status is the filled, disabled one.
+- 처리 상태 is stored as `received | confirmed | change_requested | cancelled`
+  and displayed as 접수 / 확정 / 변경 요청 / 취소. `STATUS_LABELS` in
+  `reservationStore.js` is the source; `admin-reservations.js` keeps a matching
+  copy for rendering, so change both together.
+- `status: 'new'` from the first version of the feature normalizes to `received`
+  on read, so old records need no migration.
+- 예약번호 is `R-YYMMDD-HHMM-XXXX`: the visit date and time, then four hex chars
+  hashed from email + name. Deriving it from the slot *and* the person is the
+  point — the same person booking two different times must get two numbers, which
+  a name/email-only key would not give. It is stored on create and backfilled on
+  read for older records.
+- A status change always re-renders from the record the server returned. Patching
+  only the DOM would let the screen drift from what is stored.
+- **Not yet built:** nothing stops two people booking the same slot. The table is
+  where that will surface when it is added.
+
+Navigating between the two admin pages would normally log you out — `pagehide`
+fires a `sendBeacon` logout by design. Links carrying `data-admin-nav` set a flag
+that suppresses that beacon, so the tab keeps the session while closing the tab
+still drops it.
 
 Server-side storage is the backup copy, not the delivery path. Why the response
 still has a `saved` flag:
