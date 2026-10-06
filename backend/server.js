@@ -313,7 +313,8 @@ async function handleCreateReservation(request, response) {
   try {
     const result = await reservationStore.addReservation(checked.value);
     if (!result.ok) {
-      sendJson(response, 400, { errors: result.errors });
+      // 시간이 겹친 경우는 고쳐서 다시 보낼 수 있는 상황이라 따로 알린다.
+      sendJson(response, result.taken ? 409 : 400, { errors: result.errors, taken: Boolean(result.taken) });
       return;
     }
     sendJson(response, 201, { saved: true, id: result.record.id });
@@ -363,6 +364,12 @@ async function handleAdminReservations(request, response, requestUrl) {
       const result = await reservationStore.updateStatus(id, body && body.status);
       if (result.badStatus) {
         sendJson(response, 400, { error: '알 수 없는 처리 상태예요.' });
+        return;
+      }
+      if (result.slotTaken) {
+        sendJson(response, 409, {
+          error: `그 시간은 이미 ${result.clashCode} 예약이 쓰고 있어요. 되살리려면 그 예약을 먼저 취소해 주세요.`,
+        });
         return;
       }
       if (result.notFound) {
@@ -444,6 +451,15 @@ function requestHandler(request, response) {
       bookingWindowDays: reservationStore.BOOKING_WINDOW_DAYS,
       maxPurposeLength: reservationStore.MAX_PURPOSE_LENGTH,
     });
+    return;
+  }
+
+  // 이미 찬 시간대. 예약 페이지가 (완료) 표시를 하려면 이것이 필요하다.
+  // 날짜와 시간만 내보낸다. 누가 예약했는지는 관리자 API에만 있다.
+  if (pathname === '/api/reservations/taken') {
+    reservationStore.takenSlots()
+      .then((taken) => sendJson(response, 200, { taken, timeSlots: reservationStore.TIME_SLOTS }))
+      .catch(() => sendJson(response, 503, { error: '예약 현황을 불러오지 못했어요.' }));
     return;
   }
 

@@ -199,6 +199,14 @@
   text-decoration: line-through;
 }
 
+/* 그 날의 모든 시간이 찬 날. 평일이지만 고를 시간이 없다. */
+.rsv-cal-day.is-full:disabled {
+  background: var(--bg-card-sub);
+  border-color: var(--border-card);
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
 .rsv-cal-holiday-tag {
   font-size: 0.56rem;
   font-weight: 700;
@@ -256,9 +264,37 @@
   border: 1px solid var(--rsv-danger-border);
 }
 
+.dot-full {
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-card);
+}
+
 .dot-picked {
   background: var(--primary-green);
   border: 1px solid var(--primary-green);
+}
+
+/* 이미 찬 시간 안내 */
+.rsv-slot-note {
+  margin-top: 6px;
+  padding: 9px 12px;
+  background: var(--accent-yellow);
+  border: 1px solid var(--accent-yellow-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--accent-yellow-dark);
+}
+
+.rsv-slot-note[hidden] {
+  display: none;
+}
+
+/* 고를 수 없는 시간은 드롭박스 안에서도 흐리게 보이게 한다.
+   (option 모양은 브라우저가 많이 제한하지만 색은 대체로 먹는다) */
+.rsv-select option:disabled {
+  color: var(--text-muted);
 }
 
 /* ==========================================================================
