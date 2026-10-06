@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>찾아오는 길 🗺️ | 최승하의 그린스마트 캠퍼스 노트</title>
+  <meta name="description" content="상명대학교 천안캠퍼스 상록관 306 찾아오는 길 안내와 현재 캠퍼스 날씨, 그리고 방문 예약 안내">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nanum+Round:wght@400;700;800&family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Remix Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- Leaflet (오픈소스 지도 라이브러리) -->
+  <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="visit.css">
+</head>
+<body>
+
+  <!-- Cute Floating Top Banner -->
+  <div class="top-announcement">
+    <div class="announcement-content">
+      <span>🗺️ 최승하 학생을 만나러 오시는 길을 안내해 드려요! ✨</span>
+    </div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <span class="logo-emoji">🌿</span>
+        <span class="logo-text"><strong>최승하</strong>의 캠퍼스 노트</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html#intro">🌱 소개</a>
+        <a href="index.html#projects">🗂️ 프로젝트</a>
+        <a href="index.html#project-story">🚀 선도대학</a>
+        <a href="visit.html" class="is-current" aria-current="page">🗺️ 찾아오는 길</a>
+        <a href="index.html#contact">💌 연락처</a>
+      </nav>
+
+      <div class="header-btns">
+        <a href="index.html" class="btn-copy-top">
+          <span>🏠 포트폴리오로</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- Page Heading -->
+    <section class="visit-hero">
+      <div class="visit-hero-badge">📍 방문 안내 페이지</div>
+      <h1 class="visit-hero-title">
+        찾아오는 길 안내 🗺️<br>
+        <span class="highlight-green">상명대학교 천안캠퍼스 상록관</span>에서 만나요!
+      </h1>
+      <p class="visit-hero-desc">
+        포트폴리오를 보시고 연락을 주고 싶으시다면 아래 지도와 주소를 참고해 주세요.
+        방문하시는 날의 캠퍼스 날씨도 함께 확인하실 수 있어요! 🌦️
+      </p>
+    </section>
+
+    <!-- 1. 찾아오는 길 (지도 + 주소) -->
+    <section class="section-wrap" id="visit-map">
+      <div class="section-heading-box">
+        <span class="sub-emoji">🧭</span>
+        <h2 class="section-title">지도와 주소</h2>
+        <p class="section-desc">지도를 움직이거나 확대해서 캠퍼스 위치를 자세히 살펴보세요.</p>
+      </div>
+
+      <div class="visit-map-layout">
+        <!-- Leaflet 지도 -->
+        <div class="visit-map-card">
+          <div class="visit-map-frame">
+            <div id="visit-leaflet-map" class="visit-map-canvas" role="application"
+                 aria-label="상명대학교 천안캠퍼스 상록관 위치 지도"></div>
+            <p class="visit-map-fallback" id="visit-map-fallback" hidden>
+              <span class="fallback-emoji">🗺️</span>
+              지도를 불러오지 못했어요. 아래 <strong>네이버 지도</strong> 또는 <strong>카카오맵</strong> 버튼으로 확인해 주세요.
+            </p>
+          </div>
+
+          <div class="visit-map-btns">
+            <a href="https://map.naver.com/p/search/%EC%83%81%EB%AA%85%EB%8C%80%ED%95%99%EA%B5%90%20%EC%B2%9C%EC%95%88%EC%BA%A0%ED%8D%BC%EC%8A%A4%20%EC%83%81%EB%A1%9D%EA%B4%80"
+               target="_blank" rel="noopener noreferrer" class="btn-map-action map-link">
+              <i class="ri-map-pin-line"></i> 네이버 지도로 열기
+            </a>
+            <a href="https://map.kakao.com/?q=%EC%83%81%EB%AA%85%EB%8C%80%ED%95%99%EA%B5%90%20%EC%B2%9C%EC%95%88%EC%BA%A0%ED%8D%BC%EC%8A%A4"
+               target="_blank" rel="noopener noreferrer" class="btn-map-action map-link">
+              <i class="ri-compass-3-line"></i> 카카오맵으로 열기
+            </a>
+          </div>
+        </div>
+
+        <!-- 주소 카드 -->
+        <div class="visit-address-card">
+          <div class="tape-sticker">📌 ADDRESS</div>
+
+          <h3 class="visit-card-title">🏫 방문 주소</h3>
+
+          <div class="visit-addr-main">
+            <span class="addr-label">도로명 주소</span>
+            <strong class="addr-value">충청남도 천안시 동남구 상명대길 31</strong>
+          </div>
+
+          <div class="visit-addr-detail-list">
+            <div class="visit-addr-row">
+              <span class="ar-icon">🏛️</span>
+              <div class="ar-text">
+                <span class="ar-label">상세 위치</span>
+                <strong class="ar-value">상록관 306호</strong>
+              </div>
+            </div>
+            <div class="visit-addr-row">
+              <span class="ar-icon">🎓</span>
+              <div class="ar-text">
+                <span class="ar-label">소속</span>
+                <strong class="ar-value">상명대학교 그린스마트시티학과</strong>
+              </div>
+            </div>
+            <div class="visit-addr-row">
+              <span class="ar-icon">📞</span>
+              <div class="ar-text">
+                <span class="ar-label">연락처</span>
+                <strong class="ar-value font-mono">010-4127-2581</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="visit-addr-btns">
+            <button type="button" class="btn-cute-action primary" id="visit-copy-address">
+              <i class="ri-file-copy-line"></i> 주소 복사하기
+            </button>
+            <a href="tel:010-4127-2581" class="btn-cute-action secondary">
+              <i class="ri-phone-fill"></i> 전화 걸기
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 캠퍼스 날씨 -->
+    <section class="section-wrap" id="visit-weather">
+      <div class="section-heading-box">
+        <span class="sub-emoji">🌦️</span>
+        <h2 class="section-title">지금 캠퍼스 날씨</h2>
+        <p class="section-desc">위 주소(상명대학교 천안캠퍼스) 좌표를 기준으로 조회한 현재 온도와 습도예요.</p>
+      </div>
+
+      <div class="visit-weather-card" id="visit-weather-card" aria-live="polite">
+        <div class="vw-headline">
+          <span class="vw-emoji" id="vw-emoji">⏳</span>
+          <div class="vw-headline-text">
+            <strong class="vw-place">상명대학교 천안캠퍼스</strong>
+            <span class="vw-state" id="vw-state">날씨를 불러오는 중이에요…</span>
+          </div>
+        </div>
+
+        <div class="vw-metric-grid">
+          <div class="vw-metric">
+            <span class="vw-metric-icon">🌡️</span>
+            <span class="vw-metric-label">기온</span>
+            <strong class="vw-metric-value" id="vw-temp">—</strong>
+          </div>
+          <div class="vw-metric">
+            <span class="vw-metric-icon">💧</span>
+            <span class="vw-metric-label">습도</span>
+            <strong class="vw-metric-value" id="vw-humidity">—</strong>
+          </div>
+          <div class="vw-metric">
+            <span class="vw-metric-icon">🤔</span>
+            <span class="vw-metric-label">체감 온도</span>
+            <strong class="vw-metric-value" id="vw-apparent">—</strong>
+          </div>
+        </div>
+
+        <p class="vw-updated" id="vw-updated">관측 시각을 확인하는 중…</p>
+      </div>
+    </section>
+
+    <!-- 외부 서비스 출처 -->
+    <section class="visit-credit-wrap">
+      <p class="visit-credit">
+        <i class="ri-information-line"></i>
+        지도 데이터 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> 기여자(ODbL) ·
+        지도 표시 <a href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer">Leaflet</a> ·
+        좌표 조회 <a href="https://nominatim.openstreetmap.org/" target="_blank" rel="noopener noreferrer">Nominatim</a> ·
+        날씨 정보 <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>(CC BY 4.0)
+      </p>
+    </section>
+
+    <!-- 3. 방문 예약하기 -->
+    <section class="section-wrap" id="visit-reserve">
+      <div class="visit-cta-banner">
+        <div class="contact-sparkle">✨</div>
+        <h2 class="visit-cta-title">직접 만나서 이야기 나누고 싶으신가요? 💌</h2>
+        <p class="visit-cta-sub">
+          방문 예약을 남겨주시면 일정을 확인한 뒤 정성껏 회신드리겠습니다!
+        </p>
+        <a href="reserve.html" class="btn-visit-reserve">
+          <i class="ri-calendar-check-line"></i>
+          <span>방문 예약하기</span>
+          <i class="ri-arrow-right-line cta-arrow"></i>
+        </a>
+        <p class="visit-cta-note">
+          <i class="ri-information-line"></i> 예약 페이지는 현재 준비 중이에요. 급한 문의는 010-4127-2581로 연락주세요! 😊
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Cute & Warm Footer -->
+  <footer class="footer-cute">
+    <div class="footer-content">
+      <div class="footer-mascot">🌱</div>
+      <p class="footer-main-text">
+        <strong>상명대학교 그린스마트시티학과 최승하</strong>
+      </p>
+      <p class="footer-sub-text">
+        학번: 202420778 · 연락처: 010-4127-2581 · 방문지: 천안시 동남구 상명대길 31 상록관 306
+      </p>
+      <div class="footer-divider"></div>
+      <p class="footer-copyright">
+        선도대학 프로젝트 포트폴리오 | © 2026 최승하. All Rights Reserved. 🍀
+      </p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="cute-toast">
+    <span class="toast-icon">✨</span>
+    <span id="toast-msg">복사되었습니다!</span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="visit.js"></script>
+</body>
+</html>

@@ -295,6 +295,17 @@ function requestHandler(request, response) {
     return;
   }
 
+  // Vercel은 cleanUrls로 /visit, /reserve를 알아서 받아준다.
+  // 로컬 서버도 같은 주소로 열리게 확장자 없는 경로를 짝지어 둔다.
+  const CLEAN_URL_PAGES = ['visit', 'reserve'];
+  const cleanUrlMatch = CLEAN_URL_PAGES.find(
+    (page) => pathname === `/${page}` || pathname === `/${page}/`,
+  );
+  if (cleanUrlMatch) {
+    serveFrontend(response, `/${cleanUrlMatch}.html`);
+    return;
+  }
+
   serveFrontend(response, pathname);
 }
 

@@ -1,0 +1,500 @@
+/* ==========================================================================
+   찾아오는 길 & 방문 예약 페이지 전용 스타일
+   style.css의 색·반경·그림자 토큰을 그대로 쓰고, 이 페이지에만 필요한
+   레이아웃(지도 / 주소 카드 / 날씨 카드 / 예약 CTA)만 여기에 둔다.
+   ========================================================================== */
+
+/* 현재 보고 있는 메뉴 표시 */
+.nav-links a.is-current {
+  background: var(--primary-green);
+  color: #ffffff;
+}
+
+.nav-links a.is-current:hover {
+  background: var(--primary-green-hover);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   페이지 머리말
+   ========================================================================== */
+.visit-hero {
+  padding: 24px 0 36px;
+  text-align: center;
+}
+
+.visit-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-yellow);
+  border: 1px solid var(--accent-yellow-border);
+  color: var(--accent-yellow-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.3;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 16px;
+}
+
+.visit-hero-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.45;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+
+.visit-hero-desc {
+  max-width: 620px;
+  margin: 0 auto;
+  color: var(--text-sub);
+  font-size: 0.97rem;
+  line-height: 1.75;
+}
+
+/* ==========================================================================
+   1. 지도 + 주소
+   ========================================================================== */
+.visit-map-layout {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.visit-map-card,
+.visit-address-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.visit-map-card {
+  padding: 16px;
+}
+
+.visit-map-frame {
+  position: relative;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-card-sub);
+}
+
+.visit-map-canvas {
+  width: 100%;
+  height: 340px;
+  /* Leaflet이 깔리기 전에도 빈 흰 칸으로 보이지 않게 배경을 깔아둔다. */
+  background: var(--bg-card-sub);
+}
+
+/* Leaflet 기본 폰트가 페이지와 다르게 보이는 것을 맞춰준다. */
+.visit-map-frame .leaflet-container {
+  font-family: inherit;
+  border-radius: var(--radius-md);
+}
+
+.visit-map-frame .leaflet-popup-content {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.visit-map-frame .leaflet-popup-content strong {
+  color: var(--primary-green);
+}
+
+.visit-map-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.fallback-emoji {
+  font-size: 2rem;
+}
+
+.visit-map-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.visit-map-btns .btn-map-action {
+  flex: 1 1 160px;
+}
+
+/* 주소 카드 */
+.visit-address-card {
+  position: relative;
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.visit-card-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+
+.visit-addr-main {
+  width: 100%;
+  background: var(--primary-green-light);
+  border: 1px solid var(--primary-green-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.addr-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--primary-green);
+  letter-spacing: 0.02em;
+  margin-bottom: 5px;
+}
+
+.addr-value {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.visit-addr-detail-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.visit-addr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.ar-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ar-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-muted);
+}
+
+.ar-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text-main);
+  word-break: break-all;
+}
+
+.visit-addr-btns {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* ==========================================================================
+   2. 날씨 카드
+   ========================================================================== */
+.visit-weather-card {
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--bg-card) 70%);
+  border: 2px solid var(--accent-blue-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 24px 26px;
+}
+
+.vw-headline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed var(--accent-blue-border);
+  margin-bottom: 18px;
+}
+
+.vw-emoji {
+  font-size: 2.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.vw-headline-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vw-place {
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.vw-state {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--accent-blue-dark);
+}
+
+.vw-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.vw-metric {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.vw-metric-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.vw-metric-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-muted);
+}
+
+.vw-metric-value {
+  font-size: 1.22rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--primary-green);
+  font-variant-numeric: tabular-nums;
+}
+
+.vw-updated {
+  margin-top: 14px;
+  text-align: right;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   외부 서비스 출처 (작게)
+   ========================================================================== */
+.visit-credit-wrap {
+  margin: -24px 0 40px;
+}
+
+.visit-credit {
+  font-size: 0.74rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.visit-credit a {
+  color: var(--text-sub);
+  text-decoration: underline;
+  text-decoration-color: var(--border-card);
+  text-underline-offset: 2px;
+}
+
+.visit-credit a:hover {
+  color: var(--primary-green);
+}
+
+/* ==========================================================================
+   3. 방문 예약 CTA
+   ========================================================================== */
+.visit-cta-banner {
+  position: relative;
+  background: var(--bg-card);
+  border: 2px dashed var(--primary-green-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 36px 28px 30px;
+  text-align: center;
+}
+
+.visit-cta-title {
+  font-size: 1.32rem;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.visit-cta-sub {
+  color: var(--text-sub);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+
+.btn-visit-reserve {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--primary-green);
+  color: #ffffff;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.3;
+  padding: 14px 32px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 18px rgba(59, 122, 87, 0.28);
+  transition: all 0.2s ease;
+}
+
+.btn-visit-reserve:hover {
+  background: var(--primary-green-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(59, 122, 87, 0.32);
+}
+
+.btn-visit-reserve .cta-arrow {
+  transition: transform 0.2s ease;
+}
+
+.btn-visit-reserve:hover .cta-arrow {
+  transform: translateX(3px);
+}
+
+.visit-cta-note {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   예약 페이지 (내용은 아직 비워둔 상태)
+   ========================================================================== */
+.reserve-placeholder {
+  background: var(--bg-card);
+  border: 2px dashed var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 56px 28px;
+  text-align: center;
+}
+
+.reserve-placeholder-emoji {
+  font-size: 3rem;
+  line-height: 1;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.reserve-placeholder-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.reserve-placeholder-desc {
+  max-width: 460px;
+  margin: 0 auto 24px;
+  color: var(--text-sub);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.reserve-back-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.reserve-back-btns .btn-map-action {
+  flex: 0 1 200px;
+}
+
+/* ==========================================================================
+   반응형
+   ========================================================================== */
+@media (max-width: 860px) {
+  .visit-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .visit-map-canvas {
+    height: 290px;
+  }
+}
+
+@media (max-width: 560px) {
+  .visit-hero-title {
+    font-size: 1.45rem;
+  }
+
+  .visit-weather-card {
+    padding: 20px 18px;
+  }
+
+  .vw-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vw-updated {
+    text-align: center;
+  }
+
+  .btn-visit-reserve {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+  }
+}

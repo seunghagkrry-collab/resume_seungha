@@ -1003,11 +1003,12 @@ button {
 
 .map-btns-row {
   display: flex;
+  flex-wrap: wrap; /* 버튼이 늘어나도 글자가 짓눌리지 않게 줄을 바꾼다. */
   gap: 8px;
 }
 
 .btn-map-action {
-  flex: 1;
+  flex: 1 1 150px;
   padding: 9px;
   font-size: 0.86rem;
   font-weight: 700;
