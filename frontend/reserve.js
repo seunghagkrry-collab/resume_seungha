@@ -536,12 +536,26 @@ function showToast(message) {
       return;
     }
 
-    // 서버 기록은 이메일 전달의 보조 수단이다. 실패해도 접수를 막지 않는다.
-    await saveOnServer(values);
+    // 서버 기록은 보조 사본이다. Render 무료 플랜은 잠들어 있으면 깨어나는 데
+    // 30초가 넘게 걸리는데, 이것을 기다리면 메일이 이미 갔는데도 팝업이
+    // "보내는 중…"에 멈춰 있어 실패한 것처럼 보인다. 기다리지 않고 보낸다.
+    saveOnServer(values);
 
     closeModal();
     showDone(values, mailed.ok, mailed.ok ? '' : mailed.message);
   });
+
+  /* ---------------- 네트워크가 응답하지 않을 때를 위한 제한 시간 ---------------- */
+  // 제한이 없으면 응답 없는 요청에 매달려 팝업이 영원히 "보내는 중…"이 된다.
+  async function fetchWithTimeout(url, init, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...init, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
 
   /* ---------------- Formspree로 보내기 (예약 알림의 본줄기) ---------------- */
   async function sendToFormspree(values) {
@@ -569,7 +583,7 @@ function showToast(message) {
     };
 
     try {
-      const response = await fetch(FORMSPREE_ENDPOINT, {
+      const response = await fetchWithTimeout(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -577,7 +591,7 @@ function showToast(message) {
           Accept: 'application/json',
         },
         body: JSON.stringify(payload),
-      });
+      }, 20000);
 
       if (response.ok) return { ok: true, fieldProblem: false, message: '' };
 
@@ -606,34 +620,38 @@ function showToast(message) {
         };
       }
 
+      // 원인을 추적할 수 있도록 상태 코드를 문구에 남긴다.
       return {
         ok: false,
         fieldProblem: false,
-        message: '예약 알림을 보내지 못했어요. '
-          + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.'
-          + (reasons.length ? ` (${reasons.join(' / ')})` : ''),
+        message: `예약 알림을 보내지 못했어요. (오류 ${response.status}${
+          reasons.length ? `: ${reasons.join(' / ')}` : ''
+        }) 아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.`,
       };
     } catch (error) {
+      const timedOut = error && error.name === 'AbortError';
       return {
         ok: false,
         fieldProblem: false,
-        message: '네트워크 문제로 예약 알림을 보내지 못했어요. '
-          + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.',
+        message: timedOut
+          ? '응답이 너무 늦어 예약 알림을 보내지 못했어요. 잠시 뒤에 다시 시도해 주시거나, '
+            + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주세요.'
+          : '네트워크 문제로 예약 알림을 보내지 못했어요. '
+            + '아래 "예약 내용 복사"로 복사해 010-4127-2581로 보내주시면 확인해 드릴게요.',
       };
     }
   }
 
   /* ---------------- 서버에도 한 부 남기기 (보조) ---------------- */
-  async function saveOnServer(values) {
-    try {
-      await fetch('/api/reservations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-    } catch (error) {
+  // 일부러 await하지 않는다. 이 요청의 성패는 신청자에게 보여줄 것이 없다.
+  function saveOnServer(values) {
+    fetchWithTimeout('/api/reservations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    }, 60000).catch(() => {
       // 이메일이 이미 갔다면 서버 기록 실패는 신청자가 알 필요가 없다.
-    }
+    });
   }
 
   function restoreConfirm() {
