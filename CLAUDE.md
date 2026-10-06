@@ -17,6 +17,10 @@ portfolio/
     admin.html   # Admin login + management screen
     admin.css    # Admin styles (separate from style.css)
     admin.js     # Admin login, list, save/edit/delete
+    visit.html   # 찾아오는 길: map, address, campus weather, reservation CTA
+    visit.css    # Styles for visit.html and reserve.html
+    visit.js     # Leaflet map + Open-Meteo weather + address copy
+    reserve.html # 방문 예약 page shell (form not built yet)
   backend/
     server.js                  # HTTP server, public API, admin API
     auth/adminAuth.js          # Password hashing, sessions, lockout
@@ -85,6 +89,25 @@ Validation rules:
 - `linkUrl` accepts only `http:` and `https:`; anything else is stored as an empty string.
 
 The server re-validates every write. Browser-side checks are for feedback only.
+
+## Visit page (찾아오는 길)
+
+- Public at `/visit` (Vercel `cleanUrls`) and `/visit.html`. `server.js` maps the
+  extensionless `/visit` and `/reserve` paths to their `.html` files so local dev
+  and the deployed site answer the same addresses.
+- The visit address is 충청남도 천안시 동남구 상명대길 31, 상록관 306호.
+- External services, all key-free, and all credited in small print on the page:
+  - Map: Leaflet 1.9.4 (jsDelivr) over OpenStreetMap raster tiles.
+  - Coordinates: looked up once through OSM Nominatim and stored as the
+    `VISIT_PLACE` constant in `visit.js`. No geocoding request at page load.
+  - Weather: `api.open-meteo.com/v1/forecast` with
+    `current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code`.
+- Both externals degrade instead of breaking: if the Leaflet CDN is blocked the map
+  box is replaced with a note pointing at the 네이버/카카오 buttons, and a failed
+  weather fetch leaves the metrics as `—` with a retry hint.
+- `visit.js` carries its own toast and copy helpers, so `visit.html` does not load
+  `app.js` (which exists to render project cards and build the PDF).
+- `reserve.html` is intentionally only a shell. The reservation form is the next step.
 
 ## Architecture rules
 

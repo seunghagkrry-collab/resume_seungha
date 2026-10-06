@@ -187,6 +187,59 @@ button {
   color: var(--primary-green);
 }
 
+/* 같은 페이지 내 이동이 아니라 다른 페이지로 나가는 탭이라는 걸 구분해 준다. */
+.nav-links a.nav-page-tab {
+  gap: 3px;
+  background: var(--primary-green-light);
+  border: 1px solid var(--primary-green-border);
+  color: var(--primary-green);
+  font-weight: 700;
+}
+
+.nav-links a.nav-page-tab:hover {
+  background: var(--primary-green);
+  color: #ffffff;
+}
+
+.nav-tab-arrow {
+  font-size: 0.85em;
+  transition: transform 0.2s ease;
+}
+
+.nav-links a.nav-page-tab:hover .nav-tab-arrow {
+  transform: translate(1px, -1px);
+}
+
+.header-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 넓은 화면에서는 .nav-page-tab이 이미 있으니 숨기고, nav가 사라지는
+   680px 아래에서만 꺼내 쓴다. (아래 미디어 쿼리에서 다시 켠다) */
+.btn-visit-top {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  background: var(--primary-green);
+  border: 1px solid var(--primary-green);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 3px 10px rgba(59, 122, 87, 0.22);
+  transition: all 0.2s ease;
+}
+
+.btn-visit-top:hover {
+  background: var(--primary-green-hover);
+  border-color: var(--primary-green-hover);
+  transform: translateY(-1px);
+}
+
 .btn-copy-top {
   display: inline-flex;
   align-items: center;
@@ -1003,11 +1056,12 @@ button {
 
 .map-btns-row {
   display: flex;
+  flex-wrap: wrap; /* 버튼이 늘어나도 글자가 짓눌리지 않게 줄을 바꾼다. */
   gap: 8px;
 }
 
 .btn-map-action {
-  flex: 1;
+  flex: 1 1 150px;
   padding: 9px;
   font-size: 0.86rem;
   font-weight: 700;
@@ -1276,6 +1330,10 @@ button {
 @media (max-width: 680px) {
   .nav-links {
     display: none;
+  }
+  /* nav가 숨으면 찾아오는 길로 갈 길이 사라지므로 헤더 버튼으로 대체한다. */
+  .btn-visit-top {
+    display: inline-flex;
   }
   .hero-main-title {
     font-size: 1.45rem;
@@ -1667,8 +1725,12 @@ button {
 }
 
 @media (max-width: 480px) {
-  .btn-share-top span {
+  .btn-share-top span,
+  .btn-visit-top span {
     display: none;
+  }
+  .btn-visit-top {
+    padding: 7px 11px;
   }
   .btn-share-top {
     padding: 7px 11px;
