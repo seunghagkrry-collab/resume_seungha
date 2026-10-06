@@ -163,6 +163,15 @@ one level deeper makes the page's relative `admin.css` resolve to
 - The table columns are fixed: 예약번호 / 신청자 · 이메일 / 방문 희망 시간 /
   방문 목적 / 처리 상태 / 관리. The 관리 column is four buttons, one per status;
   the current status is the filled, disabled one.
+- Above the table: a summary line (`전체 8건 · 접수 3건 · 확정 2건 · …`) and a
+  filter row (전체 + the four statuses, each with its count). Picking a filter
+  shows only that status. Counts and summary come from the full list, never from
+  the filtered view, so they stay stable while filtering.
+- Changing a status while a filter is on drops that row out of view. The flash
+  message names the filter it moved to, so it does not read as a deletion.
+- An empty table distinguishes "no reservations at all" from "nothing matches
+  this filter" — the same blank box with two different sentences would be a
+  dead end for whoever is looking at it.
 - 처리 상태 is stored as `received | confirmed | change_requested | cancelled`
   and displayed as 접수 / 확정 / 변경 요청 / 취소. `STATUS_LABELS` in
   `reservationStore.js` is the source; `admin-reservations.js` keeps a matching

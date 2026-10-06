@@ -89,11 +89,14 @@
       <section class="rsvadm-panel">
         <div class="rsvadm-head">
           <h2 class="panel-title">예약 목록</h2>
-          <p class="rsvadm-summary" id="rsvadm-summary" aria-live="polite">불러오는 중…</p>
+          <p class="rsvadm-showing" id="rsvadm-showing" aria-live="polite">불러오는 중…</p>
         </div>
 
-        <!-- 상태별 집계 -->
-        <div class="rsvadm-counts" id="rsvadm-counts"></div>
+        <!-- 요약 문장: 전체 N건 · 접수 N건 · 확정 N건 … -->
+        <p class="rsvadm-summary" id="rsvadm-summary" aria-live="polite"></p>
+
+        <!-- 처리 상태 필터. 누른 상태만 표에 남는다. -->
+        <div class="rsvadm-filters" id="rsvadm-filters" role="group" aria-label="처리 상태로 걸러보기"></div>
 
         <p class="form-alert" id="rsvadm-alert" role="alert" hidden></p>
         <p class="form-ok" id="rsvadm-ok" hidden></p>
@@ -116,7 +119,7 @@
 
         <p class="rsvadm-empty" id="rsvadm-empty" hidden>
           <span class="rsvadm-empty-emoji">📭</span>
-          아직 들어온 예약이 없어요.
+          <span id="rsvadm-empty-text">아직 들어온 예약이 없어요.</span>
         </p>
       </section>
 

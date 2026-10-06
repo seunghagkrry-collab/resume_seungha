@@ -48,61 +48,128 @@
   margin-bottom: 14px;
 }
 
-.rsvadm-summary {
+/* 지금 무엇을 보고 있는지 (제목 옆) */
+.rsvadm-showing {
   font-size: 0.84rem;
   font-weight: 600;
   color: var(--text-muted);
 }
 
 /* ==========================================================================
-   상태별 집계
+   요약 문장
+   전체 N건 · 접수 N건 · 확정 N건 · 변경 요청 N건 · 취소 N건
    ========================================================================== */
-.rsvadm-counts {
+.rsvadm-summary {
+  margin-bottom: 14px;
+  padding: 11px 15px;
+  background: var(--bg-card-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+.rsvadm-summary:empty {
+  display: none;
+}
+
+/* ==========================================================================
+   처리 상태 필터
+   누른 상태만 표에 남는다.
+   ========================================================================== */
+.rsvadm-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
 }
 
-.rsvadm-count {
+.rsvadm-filter {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 13px;
+  padding: 7px 14px;
   border-radius: var(--radius-pill);
+  font-family: inherit;
   font-size: 0.82rem;
   line-height: 1.3;
   border: 1px solid var(--border-card);
   background: var(--bg-card-sub);
   color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.rsvadm-count strong {
+.rsvadm-filter strong {
   font-weight: 700;
 }
 
-.rsvadm-count.status-received {
+.rsvadm-filter-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.rsvadm-filter:hover {
+  transform: translateY(-1px);
+}
+
+/* 꺼져 있을 때도 어느 상태인지 알아볼 수 있게 옅은 색을 둔다. */
+.rsvadm-filter.status-received {
   background: var(--rsvadm-received-bg);
   border-color: var(--rsvadm-received-border);
   color: var(--rsvadm-received);
 }
 
-.rsvadm-count.status-confirmed {
+.rsvadm-filter.status-confirmed {
   background: var(--rsvadm-confirmed-bg);
   border-color: var(--rsvadm-confirmed-border);
   color: var(--rsvadm-confirmed);
 }
 
-.rsvadm-count.status-change_requested {
+.rsvadm-filter.status-change_requested {
   background: var(--rsvadm-change-bg);
   border-color: var(--rsvadm-change-border);
   color: var(--rsvadm-change);
 }
 
-.rsvadm-count.status-cancelled {
+.rsvadm-filter.status-cancelled {
   background: var(--rsvadm-cancel-bg);
   border-color: var(--rsvadm-cancel-border);
   color: var(--rsvadm-cancel);
+}
+
+/* 고른 필터는 채워서 보여준다. */
+.rsvadm-filter.is-active {
+  color: #ffffff;
+  transform: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.rsvadm-filter.is-active.status-all {
+  background: var(--text-main);
+  border-color: var(--text-main);
+}
+
+.rsvadm-filter.is-active.status-received {
+  background: var(--rsvadm-received);
+  border-color: var(--rsvadm-received);
+}
+
+.rsvadm-filter.is-active.status-confirmed {
+  background: var(--rsvadm-confirmed);
+  border-color: var(--rsvadm-confirmed);
+}
+
+.rsvadm-filter.is-active.status-change_requested {
+  background: var(--rsvadm-change);
+  border-color: var(--rsvadm-change);
+}
+
+.rsvadm-filter.is-active.status-cancelled {
+  background: var(--rsvadm-cancel);
+  border-color: var(--rsvadm-cancel);
 }
 
 /* ==========================================================================

@@ -18,9 +18,11 @@
   const reloadBtn = document.getElementById('reload-btn');
 
   const rowsEl = document.getElementById('rsvadm-rows');
+  const showingEl = document.getElementById('rsvadm-showing');
   const summaryEl = document.getElementById('rsvadm-summary');
-  const countsEl = document.getElementById('rsvadm-counts');
+  const filtersEl = document.getElementById('rsvadm-filters');
   const emptyEl = document.getElementById('rsvadm-empty');
+  const emptyTextEl = document.getElementById('rsvadm-empty-text');
   const alertEl = document.getElementById('rsvadm-alert');
   const okEl = document.getElementById('rsvadm-ok');
 
@@ -34,7 +36,11 @@
   };
   const WEEKDAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
+  // 'all'이면 걸러내지 않는다.
+  const FILTER_ALL = 'all';
+
   let reservations = [];
+  let activeFilter = FILTER_ALL;
 
   /* ---------- 화면 전환 ---------- */
 
@@ -152,6 +158,7 @@
       // 이미 만료된 경우에도 로그인 화면으로 보낸다.
     }
     reservations = [];
+    activeFilter = FILTER_ALL;
     rowsEl.replaceChildren();
     showLogin();
   });
@@ -200,53 +207,117 @@
 
   async function loadReservations() {
     setAlert(alertEl, '');
-    summaryEl.textContent = '불러오는 중…';
+    showingEl.textContent = '불러오는 중…';
 
     try {
       const result = await api('/api/admin/reservations');
       if (!result.ok) {
-        summaryEl.textContent = '';
+        showingEl.textContent = '';
         setAlert(alertEl, result.data.error || '예약 목록을 불러오지 못했어요.');
         return;
       }
       reservations = Array.isArray(result.data.reservations) ? result.data.reservations : [];
       renderTable();
     } catch (error) {
-      summaryEl.textContent = '';
+      showingEl.textContent = '';
       setAlert(alertEl, error.message || '예약 목록을 불러오지 못했어요.');
     }
   }
 
-  function renderCounts() {
-    countsEl.replaceChildren();
+  /* ---------- 요약과 필터 ---------- */
 
+  function countBy(status) {
+    return reservations.filter((item) => item.status === status).length;
+  }
+
+  // 전체 N건 · 접수 N건 · 확정 N건 · 변경 요청 N건 · 취소 N건
+  function renderSummary() {
+    if (!reservations.length) {
+      summaryEl.textContent = '';
+      return;
+    }
+
+    const parts = [`전체 ${reservations.length}건`];
     STATUS_ORDER.forEach((status) => {
-      const total = reservations.filter((item) => item.status === status).length;
+      parts.push(`${STATUS_LABELS[status]} ${countBy(status)}건`);
+    });
+    summaryEl.textContent = parts.join(' · ');
+  }
 
-      const chip = document.createElement('span');
-      chip.className = `rsvadm-count status-${status}`;
+  function renderFilters() {
+    filtersEl.replaceChildren();
+
+    const options = [
+      { key: FILTER_ALL, label: '전체', total: reservations.length },
+      ...STATUS_ORDER.map((status) => ({
+        key: status,
+        label: STATUS_LABELS[status],
+        total: countBy(status),
+      })),
+    ];
+
+    options.forEach((option) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = `rsvadm-filter status-${option.key}`;
+      chip.dataset.filter = option.key;
 
       const name = document.createElement('strong');
-      name.textContent = STATUS_LABELS[status];
+      name.textContent = option.label;
 
       const number = document.createElement('span');
-      number.textContent = `${total}건`;
+      number.className = 'rsvadm-filter-count';
+      number.textContent = `${option.total}건`;
 
       chip.append(name, number);
-      countsEl.appendChild(chip);
+
+      const isActive = activeFilter === option.key;
+      chip.classList.toggle('is-active', isActive);
+      chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+      chip.addEventListener('click', () => {
+        if (activeFilter === option.key) return;
+        activeFilter = option.key;
+        renderTable();
+      });
+
+      filtersEl.appendChild(chip);
     });
   }
 
+  function visibleReservations() {
+    if (activeFilter === FILTER_ALL) return reservations;
+    return reservations.filter((item) => item.status === activeFilter);
+  }
+
+  /* ---------- 표 ---------- */
+
   function renderTable() {
     rowsEl.replaceChildren();
+    renderSummary();
+    renderFilters();
 
-    summaryEl.textContent = reservations.length
-      ? `전체 ${reservations.length}건`
-      : '';
-    emptyEl.hidden = reservations.length > 0;
-    renderCounts();
+    const visible = visibleReservations();
 
-    reservations.forEach((item) => {
+    // 지금 무엇을 보고 있는지 한 줄로 밝혀 둔다.
+    if (!reservations.length) {
+      showingEl.textContent = '';
+    } else if (activeFilter === FILTER_ALL) {
+      showingEl.textContent = `전체 ${reservations.length}건을 보고 있어요`;
+    } else {
+      showingEl.textContent =
+        `${STATUS_LABELS[activeFilter]} ${visible.length}건을 보고 있어요 (전체 ${reservations.length}건)`;
+    }
+
+    // 비어 있는 이유가 "예약이 없다"와 "필터에 걸린 게 없다"로 다르다.
+    emptyEl.hidden = visible.length > 0;
+    if (!visible.length) {
+      emptyTextEl.textContent = reservations.length
+        ? `${STATUS_LABELS[activeFilter]} 상태인 예약이 없어요. 다른 상태를 눌러보세요.`
+        : '아직 들어온 예약이 없어요.';
+    }
+
+    visible.forEach((item) => {
       rowsEl.appendChild(buildRow(item));
     });
   }
@@ -374,7 +445,14 @@
       }
 
       renderTable();
-      flashOk(`${updated.code} → ${STATUS_LABELS[status]}(으)로 바꿨어요.`);
+
+      // 필터를 걸어둔 상태에서 상태를 바꾸면 그 줄이 표에서 사라진다.
+      // 지워진 것처럼 보이지 않도록 어디로 갔는지 알려준다.
+      const droppedByFilter = activeFilter !== FILTER_ALL && activeFilter !== status;
+      flashOk(
+        `${updated.code} → ${STATUS_LABELS[status]}(으)로 바꿨어요.`
+        + (droppedByFilter ? ` '${STATUS_LABELS[status]}' 필터에서 볼 수 있어요.` : ''),
+      );
     } catch (error) {
       setAlert(alertEl, error.message || '처리 상태를 바꾸지 못했어요.');
       renderTable();
