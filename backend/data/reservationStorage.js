@@ -1,24 +1,32 @@
 'use strict';
 
 // 방문 예약 기록을 어디에 두는지 결정하는 곳.
-// projects.json을 다루는 storage.js와 같은 방식이지만, 예약은 방문자의
-// 이름·이메일이 들어 있는 개인정보라서 파일을 따로 두고 커밋하지 않는다.
-//
+// - Supabase: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY가 있을 때 (추천)
 // - 내 컴퓨터: backend/data/reservations.json (.gitignore 대상)
 // - Vercel Blob: BLOB_READ_WRITE_TOKEN이 있을 때
 //
-// 두 경우 모두 { reservations: [...] } 모양을 그대로 주고받는다.
+// 예약은 방문자의 이름·이메일이 들어 있는 개인정보라서 공개 저장소(projects)와는
+// 항상 분리해서 다룬다. 어떤 저장소든 { reservations: [...] } 모양(캐멀케이스 필드)을
+// 그대로 주고받는다.
 
 const fs = require('node:fs');
 const path = require('node:path');
 const { blobToken } = require('../runtime');
+const supabase = require('./supabaseClient');
 
 const DATA_FILE = path.resolve(__dirname, 'reservations.json');
 const TEMP_FILE = `${DATA_FILE}.tmp`;
 const BLOB_PATH = 'portfolio/reservations.json';
+const TABLE = 'reservations';
 
 function usesBlob() {
   return blobToken().length > 0;
+}
+
+function mode() {
+  if (supabase.isConfigured()) return 'supabase';
+  if (usesBlob()) return 'blob';
+  return 'file';
 }
 
 let lastBlobError = '';
@@ -80,44 +88,134 @@ async function writeBlob(reservations) {
   });
 }
 
-/* ---------- 공통 진입점 ---------- */
+/* ---------- Supabase 저장소 ---------- */
 
-async function readReservations() {
-  if (!usesBlob()) return readLocal();
-  if (cache) return cache;
+// DB 열(snake_case) <-> 코드에서 쓰는 필드(camelCase) 변환.
+function toDbRow(record) {
+  return {
+    id: record.id,
+    status: record.status,
+    name: record.name,
+    email: record.email,
+    purpose: record.purpose,
+    visit_date: record.visitDate,
+    visit_time: record.visitTime,
+    consent: record.consent,
+    code: record.code,
+    created_at: record.createdAt,
+    updated_at: record.updatedAt || null,
+  };
+}
 
-  try {
-    cache = await readBlob();
-    lastBlobError = '';
-    return cache;
-  } catch (error) {
-    lastBlobError = error.message || String(error);
-    console.error('[예약 저장소] Blob을 읽지 못했어요:', lastBlobError);
-    throw error;
+function fromDbRow(row) {
+  return {
+    id: row.id,
+    status: row.status,
+    name: row.name,
+    email: row.email,
+    purpose: row.purpose,
+    visitDate: row.visit_date,
+    visitTime: row.visit_time,
+    consent: row.consent,
+    code: row.code,
+    createdAt: row.created_at,
+    ...(row.updated_at ? { updatedAt: row.updated_at } : {}),
+  };
+}
+
+async function readSupabase() {
+  const { data, error } = await supabase.client
+    .from(TABLE)
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data || []).map(fromDbRow);
+}
+
+// reservations.json과 같은 "전체를 통째로 바꿔 끼운다" 방식을 테이블에서도 맞춘다.
+async function writeSupabase(reservations) {
+  const { data: existing, error: selectError } = await supabase.client.from(TABLE).select('id');
+  if (selectError) throw new Error(selectError.message);
+
+  const nextIds = new Set(reservations.map((record) => record.id));
+  const toDelete = (existing || []).map((row) => row.id).filter((id) => !nextIds.has(id));
+
+  if (reservations.length) {
+    const { error } = await supabase.client.from(TABLE).upsert(reservations.map(toDbRow), { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+  }
+
+  if (toDelete.length) {
+    const { error } = await supabase.client.from(TABLE).delete().in('id', toDelete);
+    if (error) throw new Error(error.message);
   }
 }
 
+/* ---------- 공통 진입점 ---------- */
+
+async function readReservations() {
+  if (mode() === 'supabase') {
+    try {
+      cache = await readSupabase();
+      lastBlobError = '';
+      return cache;
+    } catch (error) {
+      lastBlobError = error.message || String(error);
+      console.error('[예약 저장소] Supabase를 읽지 못했어요:', lastBlobError);
+      throw error;
+    }
+  }
+
+  if (mode() === 'blob') {
+    if (cache) return cache;
+    try {
+      cache = await readBlob();
+      lastBlobError = '';
+      return cache;
+    } catch (error) {
+      lastBlobError = error.message || String(error);
+      console.error('[예약 저장소] Blob을 읽지 못했어요:', lastBlobError);
+      throw error;
+    }
+  }
+
+  return readLocal();
+}
+
 async function writeReservations(reservations) {
-  if (!usesBlob()) {
-    writeLocal(reservations);
+  if (mode() === 'supabase') {
+    try {
+      await writeSupabase(reservations);
+      lastBlobError = '';
+      cache = reservations;
+    } catch (error) {
+      lastBlobError = error.message || String(error);
+      console.error('[예약 저장소] Supabase에 쓰지 못했어요:', lastBlobError);
+      throw new Error('예약을 저장소에 기록하지 못했어요.');
+    }
     return;
   }
 
-  // 쓰기 실패를 조용히 넘기면 예약이 사라진다. 그대로 올려 알린다.
-  try {
-    await writeBlob(reservations);
-    lastBlobError = '';
-    cache = reservations;
-  } catch (error) {
-    lastBlobError = error.message || String(error);
-    console.error('[예약 저장소] Blob에 쓰지 못했어요:', lastBlobError);
-    throw new Error('예약을 저장소에 기록하지 못했어요.');
+  if (mode() === 'blob') {
+    // 쓰기 실패를 조용히 넘기면 예약이 사라진다. 그대로 올려 알린다.
+    try {
+      await writeBlob(reservations);
+      lastBlobError = '';
+      cache = reservations;
+    } catch (error) {
+      lastBlobError = error.message || String(error);
+      console.error('[예약 저장소] Blob에 쓰지 못했어요:', lastBlobError);
+      throw new Error('예약을 저장소에 기록하지 못했어요.');
+    }
+    return;
   }
+
+  writeLocal(reservations);
 }
 
 function describe() {
   return {
-    mode: usesBlob() ? 'blob' : 'file',
+    mode: mode(),
     healthy: !lastBlobError,
     ...(lastBlobError ? { problem: lastBlobError } : {}),
   };
