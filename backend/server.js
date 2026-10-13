@@ -1,5 +1,10 @@
 'use strict';
 
+// 내 컴퓨터에서 .env 파일이 있으면 읽어서 process.env에 넣어준다.
+// Render/Vercel처럼 배포된 곳은 .env 파일이 없고, 그쪽 설정 화면에서
+// 넣은 환경변수를 그대로 쓰므로 영향 없다.
+require('dotenv').config();
+
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');

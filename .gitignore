@@ -8,3 +8,6 @@ node_modules/
 
 # 방문 예약 기록 (방문자 개인정보 - 절대 커밋하지 않는다)
 backend/data/reservations.json
+
+# Supabase 키 등 비밀 값 (절대 커밋하지 않는다)
+.env
