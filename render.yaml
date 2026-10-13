@@ -16,7 +16,13 @@ services:
       # 관리자 비밀번호. 대시보드에서 직접 넣는다. 저장소에는 올라가지 않는다.
       - key: ADMIN_PASSWORD
         sync: false
-      # Vercel Blob 저장소 토큰. 없으면 저장한 내용이 재시작 때 사라진다.
+      # Supabase 연결 정보. 둘 다 있어야 projects/reservations가 DB로 저장된다.
+      # 없으면 BLOB_READ_WRITE_TOKEN -> 로컬 파일 순서로 대신 쓴다.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # Vercel Blob 저장소 토큰. Supabase를 쓰면 더 이상 필요 없다.
       - key: BLOB_READ_WRITE_TOKEN
         sync: false
       - key: NODE_VERSION

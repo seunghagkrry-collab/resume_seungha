@@ -1,5 +1,10 @@
 'use strict';
 
+// 내 컴퓨터에서 .env 파일이 있으면 읽어서 process.env에 넣어준다.
+// Render/Vercel처럼 배포된 곳은 .env 파일이 없고, 그쪽 설정 화면에서
+// 넣은 환경변수를 그대로 쓰므로 영향 없다.
+require('dotenv').config();
+
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -536,7 +541,10 @@ function startServer() {
       console.log('       실제 토큰은 vercel_blob_rw_ 로 시작합니다. 안 쓰실 거라면 변수를 지우셔도 됩니다.');
     }
 
-    if (storage.usesBlob()) {
+    const storageMode = storage.describe().mode;
+    if (storageMode === 'supabase') {
+      console.log('저장소: Supabase (재시작해도 내용이 유지돼요)');
+    } else if (storageMode === 'blob') {
       console.log('저장소: Vercel Blob (재시작해도 내용이 유지돼요)');
     } else {
       console.log('저장소: backend/data/projects.json 파일');

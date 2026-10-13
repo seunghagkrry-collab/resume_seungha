@@ -7,6 +7,8 @@
 // 성공했다고 알려 놓고 잃어버리는 쪽이 가장 나쁘므로,
 // 저장이 유지되는 경우에만 관리 기능을 연다.
 
+const supabase = require('./data/supabaseClient');
+
 const IS_EPHEMERAL_HOST = Boolean(
   process.env.RENDER || process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
 );
@@ -34,7 +36,7 @@ function isEphemeralHost() {
 }
 
 function hasExternalStorage() {
-  return blobToken().length > 0;
+  return blobToken().length > 0 || supabase.isConfigured();
 }
 
 // 내 컴퓨터이거나, 외부 저장소가 붙어 있을 때만 쓰기를 허용한다.
